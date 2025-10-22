@@ -1,0 +1,42 @@
+/* 🌿 Styling khusus untuk tampilan Desa Sungai Meranti */
+.navbar {
+    @apply flex items-center justify-between px-6 py-4 shadow-md bg-gradient-to-r from-blue-800 to-blue-600 text-white;
+}
+
+.navbar-logo {
+    @apply flex items-center space-x-3;
+}
+
+.navbar-logo img {
+    @apply w-12 h-12 rounded border-2 border-white;
+}
+
+.navbar-text {
+    @apply leading-tight font-semibold;
+}
+
+.navbar-text span:first-child {
+    @apply text-xs uppercase tracking-wide;
+}
+
+.navbar-text span:last-child {
+    @apply text-sm font-bold;
+}
+
+/* 🌿 Tema warna Desa Sungai Meranti */
+:root {
+    --desa-primary: #2563eb;
+    /* biru elegan */
+    --desa-secondary: #15803d;
+    /* hijau alami */
+    --desa-accent: #facc15;
+    /* kuning cerah */
+}
+
+body {
+    @apply font-sans bg-gray-50 text-gray-800;
+}
+
+.container {
+    @apply mx-auto max-w-7xl;
+}
