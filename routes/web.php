@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ValidasiController;
 use App\Http\Controllers\Sekdes\ProsesSuratController;
 use App\Http\Controllers\Kades\TandaTanganController;
 use App\Http\Controllers\TrackingController;
+use App\Http\resources\views\homeblade;
 
 // ✅ Tes route di luar auth, biar bisa diakses tanpa login
 Route::get('/tes', function () {
@@ -37,3 +38,5 @@ Route::middleware(['auth'])->group(function () {
 
 // ✅ Tracking publik (tanpa login)
 Route::get('tracking/{kode}', [TrackingController::class, 'check']);
+
+Route::view('/', 'home')->name('home');
