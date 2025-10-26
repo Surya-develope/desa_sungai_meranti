@@ -53,4 +53,10 @@ class PengajuanController extends Controller
         $p = PengajuanSurat::with('jenis','suratTerbit','pemohon')->findOrFail($id);
         return response()->json($p);
     }
+
+    public function create()
+    {
+        $jenisSuratList = JenisSurat::all();
+        return view('layout.create', compact('jenisSuratList'));
+    }
 }

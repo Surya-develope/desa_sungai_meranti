@@ -6,6 +6,7 @@ use Laravel\Sanctum\HasApiTokens; // ✅ import trait dari Sanctum
 use Illuminate\Foundation\Auth\User as Authenticatable; // ✅ ganti base class
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Hash;
 
 class UserDesa extends Model
 {
@@ -28,5 +29,10 @@ class UserDesa extends Model
     public function pengajuan()
     {
         return $this->hasMany(PengajuanSurat::class, 'nik_pemohon', 'nik');
+    }
+
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = Hash::make($value);
     }
 }
