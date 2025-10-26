@@ -1,35 +1,33 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class PengajuanSurat extends Model
 {
-    protected $table = 'pengajuan_surat'; // ✅ tambahkan ini!
-
+    protected $table = 'pengajuan_surat';
     protected $fillable = [
-        'user_id',
-        'surat_type_id',
-        'nomor_surat',
-        'tanggal_pengajuan',
-        'status',
-        'keterangan',
-        'tracking_code'
+        'nik_pemohon','jenis_surat_id','tanggal_pengajuan','status',
+        'data_isian','file_syarat','alasan_penolakan'
     ];
 
-    public function user()
+    protected $casts = [
+        'data_isian' => 'array',
+        'file_syarat' => 'array',
+    ];
+
+    public function pemohon()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(UserDesa::class, 'nik_pemohon', 'nik');
     }
 
-    public function suratType()
+    public function jenis()
     {
-        return $this->belongsTo(SuratType::class, 'surat_type_id');
+        return $this->belongsTo(JenisSurat::class, 'jenis_surat_id');
     }
 
-    public function riwayat()
+    public function suratTerbit()
     {
-        return $this->hasMany(RiwayatStatus::class, 'pengajuan_id');
+        return $this->hasOne(SuratTerbit::class, 'pengajuan_id');
     }
 }

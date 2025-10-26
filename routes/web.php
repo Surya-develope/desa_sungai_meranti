@@ -1,42 +1,26 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Warga\PengajuanController;
-use App\Http\Controllers\Admin\ValidasiController;
-use App\Http\Controllers\Sekdes\ProsesSuratController;
-use App\Http\Controllers\Kades\TandaTanganController;
-use App\Http\Controllers\TrackingController;
-use App\Http\resources\views\homeblade;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PengajuanController;
+use App\Http\Controllers\AdminPengajuanController;
+use App\Http\Controllers\SuratTerbitController;
 
-// ✅ Tes route di luar auth, biar bisa diakses tanpa login
-Route::get('/tes', function () {
-    return 'Laravel jalan!';
+Route::post('register', [AuthController::class, 'register']); // optional
+Route::post('login', [AuthController::class, 'login']);
+
+// Public endpoints
+Route::post('pengajuan', [PengajuanController::class, 'store']); // warga submit
+Route::get('jenis-surat', [PengajuanController::class, 'jenisSuratList']);
+Route::get('pengajuan/{id}', [PengajuanController::class, 'show']); // lihat status
+
+// Auth protected (admin) - menggunakan sanctum
+Route::middleware('auth:sanctum')->group(function(){
+    Route::get('admin/pengajuan', [AdminPengajuanController::class, 'index']);
+    Route::get('admin/pengajuan/{id}', [AdminPengajuanController::class, 'show']);
+    Route::post('admin/pengajuan/{id}/approve', [AdminPengajuanController::class, 'approve']);
+    Route::post('admin/pengajuan/{id}/reject', [AdminPengajuanController::class, 'reject']);
+    Route::post('admin/pengajuan/{id}/generate', [AdminPengajuanController::class, 'generate']); // generate doc/pdf
+    Route::post('logout', [AuthController::class, 'logout']);
 });
-
-// ✅ Semua route di bawah ini butuh login
-Route::middleware(['auth'])->group(function () {
-
-    Route::prefix('warga')->middleware('role:warga')->group(function () {
-        Route::get('pengajuan', [PengajuanController::class, 'index']);
-        Route::post('pengajuan', [PengajuanController::class, 'store']);
-    });
-
-    Route::prefix('admin')->middleware('role:admin')->group(function () {
-        Route::get('validasi', [ValidasiController::class, 'index']);
-        Route::post('validasi/{id}/verify', [ValidasiController::class, 'verify']);
-        Route::post('validasi/{id}/reject', [ValidasiController::class, 'reject']);
-    });
-
-    Route::prefix('sekdes')->middleware('role:sekdes')->group(function () {
-        Route::post('proses/{id}/generate', [ProsesSuratController::class, 'generate']);
-    });
-
-    Route::prefix('kades')->middleware('role:kades')->group(function () {
-        Route::post('tandatangan/{id}/approve', [TandaTanganController::class, 'approve']);
-    });
-});
-
-// ✅ Tracking publik (tanpa login)
-Route::get('tracking/{kode}', [TrackingController::class, 'check']);
-
-Route::view('/', 'home')->name('home');
