@@ -14,10 +14,10 @@
                 <span class="text-lg font-semibold">Desa Sungai Meranti</span>
             </div>
             <div class="space-x-6">
-                <a href="/" class="hover:text-yellow-300">Beranda</a>
-                <a href="/surat" class="hover:text-yellow-300">Pembuatan Surat</a>
-                <a href="/penduduk" class="hover:text-yellow-300">Data Penduduk</a>
-                <a href="/profil" class="hover:text-yellow-300">Profil Desa</a>
+                <a href="{{ route('home') }}" class="hover:text-yellow-300">Beranda</a>
+                <a href="{{ route('pengajuan.create') }}" class="hover:text-yellow-300">Pembuatan Surat</a>
+                <a href="{{ route('penduduk') }}" class="hover:text-yellow-300">Data Penduduk</a>
+                <a href="{{ route('profil') }}" class="hover:text-yellow-300">Profil Desa</a>
             </div>
         </div>
     </nav>

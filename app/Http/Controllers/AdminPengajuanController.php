@@ -4,13 +4,30 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PengajuanSurat;
 use App\Models\SuratTerbit;
-use App\Services\DocumentGenerator;
+use App\Services\SuratGeneratorService;
 
 class AdminPengajuanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $list = PengajuanSurat::with('pemohon','jenis')->orderBy('created_at','desc')->get();
+        $query = PengajuanSurat::with('pemohon', 'jenis')->orderBy('created_at', 'desc');
+
+        // Filter by status
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Search by applicant name or NIK
+        if ($request->has('search')) {
+            $searchTerm = $request->search;
+            $query->whereHas('pemohon', function ($q) use ($searchTerm) {
+                $q->where('nama', 'like', "%{$searchTerm}%")
+                  ->orWhere('nik', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        $list = $query->paginate(15)->withQueryString(); // withQueryString appends the query params to pagination links
+
         return response()->json($list);
     }
 
@@ -27,7 +44,10 @@ class AdminPengajuanController extends Controller
         $p->alasan_penolakan = $request->alasan;
         $p->save();
 
-        return response()->json(['message' => 'Pengajuan ditolak']);
+        return response()->json([
+            'message' => 'Pengajuan ditolak',
+            'data' => $p->load('pemohon', 'jenis', 'suratTerbit')
+        ]);
     }
 
     public function approve($id)
@@ -36,10 +56,13 @@ class AdminPengajuanController extends Controller
         $p->status = 'disetujui_verifikasi';
         $p->save();
 
-        return response()->json(['message' => 'Pengajuan disetujui, siap digenerate']);
+        return response()->json([
+            'message' => 'Pengajuan disetujui, siap digenerate',
+            'data' => $p->load('pemohon', 'jenis', 'suratTerbit')
+        ]);
     }
 
-    public function generate(Request $request, $id, DocumentGenerator $generator)
+    public function generate(Request $request, $id, SuratGeneratorService $generator)
     {
         $p = PengajuanSurat::with('jenis','pemohon')->findOrFail($id);
 

@@ -86,7 +86,7 @@ document.getElementById('pengajuan-form').addEventListener('submit', async funct
     submitButton.textContent = 'Mengirim...';
 
     try {
-        const response = await fetch('/pengajuan', {
+        const response = await fetch('/api/pengajuan', {
             method: 'POST',
             body: formData,
             headers: {

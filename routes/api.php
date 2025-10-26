@@ -17,6 +17,7 @@ Route::get('pengajuan/{id}', [PengajuanController::class, 'show']);
 
 // Protected routes (admin)
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('user', [AuthController::class, 'user']);
     Route::get('admin/pengajuan', [AdminPengajuanController::class, 'index']);
     Route::get('admin/pengajuan/{id}', [AdminPengajuanController::class, 'show']);
     Route::post('admin/pengajuan/{id}/approve', [AdminPengajuanController::class, 'approve']);
