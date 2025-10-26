@@ -21,7 +21,7 @@ class AuthController extends Controller
             'nik'=>$r->nik,
             'nama'=>$r->nama,
             'email'=>$r->email,
-            'password'=>bcrypt($r->password),
+            'password'=>$r->password, // Hashing akan ditangani oleh mutator di model
             'role_id'=>2 // misal 2 = warga
         ]);
 

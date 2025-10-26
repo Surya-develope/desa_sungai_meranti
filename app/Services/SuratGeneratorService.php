@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Dompdf\Dompdf;
 use App\Models\PengajuanSurat;    
 
-class DocumentGenerator
+class SuratGeneratorService
 {
     public function generateFromTemplate(PengajuanSurat $pengajuan)
     {
@@ -19,9 +19,13 @@ class DocumentGenerator
             throw new \Exception("Template {$templateFile} tidak ditemukan di storage/app/templates");
         }
 
+        // Pastikan direktori temp ada
+        $tempDir = storage_path('app/temp');
+        if (!is_dir($tempDir)) mkdir($tempDir, 0755, true);
+
         // copy template ke temp working file
         $tempDocPath = storage_path('app/temp/' . uniqid('doc_') . '.docx');
-        if (!is_dir(storage_path('app/temp'))) mkdir(storage_path('app/temp'), 0755, true);
+        $htmlTempPath = storage_path('app/temp/' . uniqid('html_') . '.html');
         copy($templatePath, $tempDocPath);
 
         $tpl = new TemplateProcessor($tempDocPath);
@@ -42,48 +46,50 @@ class DocumentGenerator
         $tpl->setValue('tanggal', now()->format('d F Y'));
         $tpl->setValue('desa', 'Desa Sungai Meranti');
 
-        // simpan dokumen docx hasil generate
-        $outDocName = 'surat_' . $pengajuan->id . '_' . time() . '.docx';
-        $outDocStorage = "public/surat/{$outDocName}";
-        $outDocFullPath = storage_path('app/public/surat/' . $outDocName);
+        try {
+            // simpan dokumen docx hasil generate
+            $outDocName = 'surat_' . $pengajuan->id . '_' . time() . '.docx';
+            $outDocFullPath = storage_path('app/public/surat/' . $outDocName);
 
-        if (!is_dir(storage_path('app/public/surat'))) mkdir(storage_path('app/public/surat'), 0755, true);
+            $suratDir = storage_path('app/public/surat');
+            if (!is_dir($suratDir)) mkdir($suratDir, 0755, true);
 
-        $tpl->saveAs($outDocFullPath);
+            $tpl->saveAs($outDocFullPath);
 
-        // Convert DOCX to HTML then to PDF using Dompdf is one approach.
-        // Simpler: PhpWord can save to PDF if you have TCPDF or DomPDF writer, 
-        // but for portability, we convert docx -> HTML -> dompdf -> PDF.
-        $phpWord = IOFactory::load($outDocFullPath);
-        $htmlWriter = IOFactory::createWriter($phpWord, 'HTML');
+            // Konversi ke PDF
+            $phpWord = IOFactory::load($outDocFullPath);
+            $htmlWriter = IOFactory::createWriter($phpWord, 'HTML');
+            $htmlWriter->save($htmlTempPath);
+            $htmlContent = file_get_contents($htmlTempPath);
 
-        $htmlTemp = storage_path('app/temp/' . uniqid('html_') . '.html');
-        $htmlWriter->save($htmlTemp);
-        $htmlContent = file_get_contents($htmlTemp);
+            $dompdf = new Dompdf();
+            $dompdf->loadHtml($htmlContent);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
 
-        // instantiate dompdf
-        $dompdf = new Dompdf();
-        $dompdf->loadHtml($htmlContent);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
+            $pdfName = 'surat_' . $pengajuan->id . '_' . time() . '.pdf';
+            $pdfPath = storage_path('app/public/surat/' . $pdfName);
+            file_put_contents($pdfPath, $dompdf->output());
 
-        $pdfName = 'surat_' . $pengajuan->id . '_' . time() . '.pdf';
-        $pdfPath = storage_path('app/public/surat/' . $pdfName);
-        file_put_contents($pdfPath, $dompdf->output());
+            // simpan path relative ke storage
+            $storagePath = "surat/{$pdfName}";
+            $url = Storage::url($storagePath); // butuh php artisan storage:link
 
-        // bersihkan temp files jika perlu
-        @unlink($tempDocPath);
-        @unlink($htmlTemp);
+            return [
+                'path' => $storagePath,
+                'url' => $url,
+                'docx' => "surat/{$outDocName}",
+                'pdf' => $storagePath
+            ];
 
-        // simpan path relative ke storage
-        $storagePath = "surat/{$pdfName}";
-        $url = Storage::url($storagePath); // butuh php artisan storage:link
-
-        return [
-            'path' => $storagePath,
-            'url' => $url,
-            'docx' => "surat/{$outDocName}",
-            'pdf' => $storagePath
-        ];
+        } finally {
+            // Selalu bersihkan file sementara
+            if (file_exists($tempDocPath)) {
+                @unlink($tempDocPath);
+            }
+            if (file_exists($htmlTempPath)) {
+                @unlink($htmlTempPath);
+            }
+        }
     }
 }

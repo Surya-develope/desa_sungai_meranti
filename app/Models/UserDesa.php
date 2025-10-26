@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Hash;
 
 class UserDesa extends Model
 {
@@ -22,5 +23,10 @@ class UserDesa extends Model
     public function pengajuan()
     {
         return $this->hasMany(PengajuanSurat::class, 'nik_pemohon', 'nik');
+    }
+
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = Hash::make($value);
     }
 }

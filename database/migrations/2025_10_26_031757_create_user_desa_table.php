@@ -9,7 +9,7 @@ return new class extends Migration {
         Schema::create('user_desa', function (Blueprint $table) {
             $table->string('nik', 20)->primary();
             $table->string('nama', 100);
-            $table->string('email')->unique();
+            $table->string('email')->nullable();
             $table->string('password');
             $table->unsignedBigInteger('role_id');
             $table->text('alamat')->nullable();
