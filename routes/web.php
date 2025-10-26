@@ -6,12 +6,21 @@ use App\Http\Controllers\Admin\ValidasiController;
 use App\Http\Controllers\Sekdes\ProsesSuratController;
 use App\Http\Controllers\Kades\TandaTanganController;
 use App\Http\Controllers\TrackingController;
-use App\Http\resources\views\homeblade;
+// Hapus atau abaikan: use App\Http\resources\views\homeblade;
 
 // ✅ Tes route di luar auth, biar bisa diakses tanpa login
 Route::get('/tes', function () {
     return 'Laravel jalan!';
 });
+
+// --- Rute Otentikasi (LOGIN & LOGOUT) ---
+// Rute ini harus ada di luar middleware 'auth' agar bisa diakses pengguna yang belum login.
+// Menggunakan PengajuanController untuk menangani form login warga
+Route::get('/login', [PengajuanController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [PengajuanController::class, 'login']);
+Route::post('/logout', [PengajuanController::class, 'logout'])->name('logout');
+// -----------------------------------------
+
 
 // ✅ Semua route di bawah ini butuh login
 Route::middleware(['auth'])->group(function () {
