@@ -6,6 +6,20 @@ use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\AdminPengajuanController;
 use App\Http\Controllers\SuratTerbitController;
 
+Route::get('/', function () {
+    return view('home');
+});
+
+Route::get('pengajuan/create', [PengajuanController::class, 'create'])->name('pengajuan.create');
+
+Route::get('/penduduk', function () {
+    return 'Halaman data penduduk sedang dalam pengembangan.';
+})->name('penduduk');
+
+Route::get('/profil', function () {
+    return 'Halaman profil desa sedang dalam pengembangan.';
+})->name('profil');
+
 Route::post('register', [AuthController::class, 'register']); // optional
 Route::post('login', [AuthController::class, 'login']);
 
