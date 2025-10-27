@@ -18,7 +18,7 @@ class AuthController extends Controller
         $r->validate([
             'nik' => 'required|string|unique:user_desa,nik',
             'nama' => 'required|string',
-            'email' => 'nullable|email|unique:user_desa,email',
+            'email' => 'required|email|unique:user_desa,email',
             'password' => 'required|min:6'
         ]);
 
