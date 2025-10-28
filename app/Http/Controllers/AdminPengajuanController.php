@@ -13,12 +13,10 @@ class AdminPengajuanController extends Controller
         try {
             $query = PengajuanSurat::with('pemohon', 'jenis')->orderBy('created_at', 'desc');
 
-            // Filter by status
             if ($request->has('status')) {
                 $query->where('status', $request->status);
             }
 
-            // Search by applicant name or NIK
             if ($request->has('search')) {
                 $searchTerm = $request->search;
                 $query->whereHas('pemohon', function ($q) use ($searchTerm) {
@@ -70,7 +68,7 @@ class AdminPengajuanController extends Controller
             $p->status = 'ditolak';
             $p->alasan_penolakan = $request->alasan;
             $p->save();
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Pengajuan ditolak',
@@ -90,14 +88,14 @@ class AdminPengajuanController extends Controller
             ], 500);
         }
     }
-
+    
     public function approve($id)
     {
         try {
             $p = PengajuanSurat::findOrFail($id);
             $p->status = 'disetujui_verifikasi';
             $p->save();
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Pengajuan disetujui, siap digenerate',
@@ -111,34 +109,31 @@ class AdminPengajuanController extends Controller
             ], 500);
         }
     }
-
+    
     public function generate(Request $request, $id, SuratGeneratorService $generator)
     {
         try {
             $p = PengajuanSurat::with('jenis','pemohon')->findOrFail($id);
-
+    
             if ($p->status !== 'disetujui_verifikasi') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Pengajuan belum disetujui atau tidak dalam status yang benar'
                 ], 422);
             }
-
-            // panggil service generator
+    
             $output = $generator->generateFromTemplate($p);
-
-            // simpan record surat_terbit
+    
             $surat = SuratTerbit::create([
                 'pengajuan_id' => $p->id,
                 'file_surat' => $output['path'],
                 'tanggal_terbit' => now(),
                 'status_cetak' => 'menunggu_tanda_tangan'
             ]);
-
-            // update pengajuan
+    
             $p->status = 'menunggu_tanda_tangan';
             $p->save();
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Dokumen berhasil dibuat',
@@ -148,6 +143,33 @@ class AdminPengajuanController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal membuat dokumen',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function dashboardSummary()
+    {
+        try {
+            $jumlahPengajuanBaru = PengajuanSurat::where('status', 'menunggu')->count();
+            $jumlahSuratDisetujui = PengajuanSurat::where('status', 'disetujui_verifikasi')->count();
+            $jumlahSuratDitolak = PengajuanSurat::where('status', 'ditolak')->count();
+            $jumlahSuratTerbitHariIni = SuratTerbit::whereDate('tanggal_terbit', now()->toDateString())->count();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Summary dashboard berhasil dimuat',
+                'data' => [
+                    'jumlah_pengajuan_baru' => $jumlahPengajuanBaru,
+                    'jumlah_surat_disetujui' => $jumlahSuratDisetujui,
+                    'jumlah_surat_ditolak' => $jumlahSuratDitolak,
+                    'jumlah_surat_terbit_hari_ini' => $jumlahSuratTerbitHariIni,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat summary dashboard',
                 'error' => $e->getMessage()
             ], 500);
         }

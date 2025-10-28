@@ -12,8 +12,14 @@ class SuratGeneratorService
     public function generateFromTemplate(PengajuanSurat $pengajuan)
     {
         $jenis = $pengajuan->jenis;
-        $templateFile = $jenis->file_template; // e.g. 'sk_tanggungan.docx'
+        $templateFile = $jenis->file_template; // e.g. 'sk_tanggungan.docx' atau '.xlsx'
         $templatePath = storage_path("app/templates/{$templateFile}");
+    
+        $ext = strtolower(pathinfo($templatePath, PATHINFO_EXTENSION));
+    
+        if ($ext === 'xlsx') {
+            return $this->generateFromExcel($pengajuan, $templatePath);
+        }
 
         if (!file_exists($templatePath)) {
             throw new \Exception("Template {$templateFile} tidak ditemukan di storage/app/templates");
@@ -91,5 +97,42 @@ class SuratGeneratorService
                 @unlink($htmlTempPath);
             }
         }
+    }
+    
+    private function generateFromExcel(PengajuanSurat $pengajuan, string $templatePath)
+    {
+        if (!file_exists($templatePath)) {
+            throw new \Exception("Template Excel {$templatePath} tidak ditemukan.");
+        }
+    
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($templatePath);
+        $sheet = $spreadsheet->getActiveSheet();
+        $data = $pengajuan->data_isian ?? [];
+    
+        foreach ($data as $key => $val) {
+            $placeholder = '{{' . $key . '}}';
+            foreach ($sheet->getCellCollection() as $cell) {
+                if ($sheet->getCell($cell)->getValue() === $placeholder) {
+                    $sheet->setCellValue($cell, is_array($val) ? implode(', ', $val) : $val);
+                }
+            }
+        }
+    
+        $outExcelName = 'surat_' . $pengajuan->id . '_' . time() . '.xlsx';
+        $excelPath = storage_path('app/public/surat/' . $outExcelName);
+        $suratDir = storage_path('app/public/surat');
+        if (!is_dir($suratDir)) mkdir($suratDir, 0755, true);
+    
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save($excelPath);
+    
+        $storagePath = "surat/{$outExcelName}";
+        $url = \Illuminate\Support\Facades\Storage::url($storagePath);
+    
+        return [
+            'path' => $storagePath,
+            'url' => $url,
+            'excel' => $storagePath
+        ];
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void {
         Schema::create('user_desa', function (Blueprint $table) {
-            $table->string('nik', 20)->primary();
+            $table->string('nik', 16)->primary();
             $table->string('nama', 100);
             $table->string('email')->nullable();
             $table->string('password');
@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('no_hp', 20)->nullable();
             $table->timestamp('created_at')->useCurrent();
 
-            $table->foreign('role_id')->references('id')->on('role')->onDelete('cascade');
+            $table->foreign('role_id')->references('id')->on('role')->onDelete('restrict');
         });
     }
 

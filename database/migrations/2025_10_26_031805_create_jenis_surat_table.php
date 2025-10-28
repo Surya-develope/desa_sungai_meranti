@@ -10,7 +10,8 @@ return new class extends Migration {
             $table->id();
             $table->string('nama_surat', 150);
             $table->string('file_template')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
         });
     }
 
