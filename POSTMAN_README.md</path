@@ -1,0 +1,167 @@
+# 📡 Postman Collection - Desa Sungai Meranti API
+
+## 📋 Deskripsi
+Collection Postman lengkap untuk menguji semua API endpoint pada proyek Laravel Desa Sungai Meranti.
+
+## 🚀 Cara Penggunaan
+
+### 1. Import Collection
+1. Buka Postman
+2. Klik "Import" atau tekan `Ctrl+O`
+3. Pilih file `postman-collection.json`
+4. Collection akan muncul di sidebar Postman
+
+### 2. Konfigurasi Environment
+Collection sudah dikonfigurasi dengan variabel berikut:
+- `base_url`: `http://localhost:8080/api`
+- `token`: Akan diset otomatis setelah login
+
+### 3. Urutan Testing yang Disarankan
+
+#### 🔐 **Step 1: Authentication**
+1. **Register User** - Buat akun baru
+   ```
+   POST /api/register
+   Body: {
+     "nik": "1234567890123456",
+     "nama": "Test User", 
+     "email": "test@example.com",
+     "password": "password123"
+   }
+   ```
+
+2. **Login User** - Login dan dapatkan token
+   ```
+   POST /api/login
+   Body: {
+     "email": "test@example.com",
+     "password": "password123"
+   }
+   ```
+   ⚠️ Token akan disimpan otomatis ke variabel `{{token}}`
+
+3. **Get Current User** - Cek profil user saat ini
+   ```
+   GET /api/user
+   ```
+
+4. **Logout User** - Keluar dari sistem
+   ```
+   POST /api/logout
+   ```
+
+#### 📋 **Step 2: Letter Management**
+1. **Get Letter Types** - Lihat jenis surat yang tersedia
+   ```
+   GET /api/jenis-surat
+   ```
+
+2. **Submit Letter Request** - Ajukan permohonan surat
+   ```
+   POST /api/pengajuan
+   Body: {
+     "jenis_surat_id": 1,
+     "data_pemohon": {
+       "nama": "John Doe",
+       "nik": "1234567890123456",
+       "alamat": "Jl. Test No. 123"
+     },
+     "keterangan": "Permohonan surat keterangan domisili"
+   }
+   ```
+
+3. **Get Letter Request Details** - Lihat detail permohonan
+   ```
+   GET /api/pengajuan/{id}
+   ```
+
+4. **Add Letter Type** - Tambah jenis surat (Admin)
+   ```
+   POST /api/tambah-jenis
+   ```
+
+#### 👨‍💼 **Step 3: Admin Panel** 
+1. **Get All Requests** - Lihat semua permohonan
+   ```
+   GET /api/admin/pengajuan
+   ```
+
+2. **Get Request Details** - Detail permohonan tertentu
+   ```
+   GET /api/admin/pengajuan/{id}
+   ```
+
+3. **Approve Request** - Setujui permohonan
+   ```
+   POST /api/admin/pengajuan/{id}/approve
+   Body: {
+     "catatan": "Permohonan disetujui"
+   }
+   ```
+
+4. **Generate Letter** - Generate surat
+   ```
+   POST /api/admin/pengajuan/{id}/generate
+   Body: {
+     "nomor_surat": "SM/2025/001",
+     "tanggal_surat": "2025-01-15"
+   }
+   ```
+
+5. **Reject Request** - Tolak permohonan
+   ```
+   POST /api/admin/pengajuan/{id}/reject
+   Body: {
+     "alasan": "Dokumen tidak lengkap"
+   }
+   ```
+
+## 🔧 Utilities
+- **API Routes List**: Cek semua route yang tersedia
+- **CSRF Token**: Untuk authentication cookie
+
+## 📝 Testing Workflow
+
+### untuk User Biasa:
+1. Register → Login → Get User → Submit Letter Request
+
+### untuk Admin:
+1. Login → Get All Requests → Approve/Reject → Generate Letter
+
+## ⚠️ Catatan Penting
+
+1. **Base URL**: Pastikan Laravel server berjalan di port 8080
+2. **Token**: Collection otomatis menyimpan token setelah login
+3. **Content-Type**: Semua request POST menggunakan `application/json`
+4. **Authentication**: Admin routes memerlukan token dengan role admin
+
+## 🐛 Troubleshooting
+
+Jika ada error:
+1. Pastikan server Laravel berjalan: `php artisan serve`
+2. Cek database sudah di-migrate: `php artisan migrate:fresh --seed`
+3. Pastikan tidak ada error di `storage/logs/laravel.log`
+
+## 📊 Expected Responses
+
+### Success (200/201):
+```json
+{
+  "message": "Success",
+  "data": {...}
+}
+```
+
+### Error (400/401/403/404):
+```json
+{
+  "message": "Error message",
+  "errors": {...}
+}
+```
+
+---
+**Collection Version**: 1.0  
+**Last Updated**: 2025-01-28  
+**Laravel Version**: 10.x  
+**API Version**: v1

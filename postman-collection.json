@@ -1,0 +1,384 @@
+{
+  "info": {
+    "name": "Desa Sungai Meranti API",
+    "description": "Complete API testing collection for Desa Sungai Meranti Laravel project",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "1. Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"1234567890123456\",\n  \"nama\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.to.have.status(200)) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('token', response.token);",
+                  "    console.log('Token saved:', response.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Logout User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Letter Management",
+      "item": [
+        {
+          "name": "1. Get Letter Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/jenis-surat",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "jenis-surat"
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Submit Letter Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jenis_surat_id\": 1,\n  \"data_pemohon\": {\n    \"nama\": \"John Doe\",\n    \"nik\": \"1234567890123456\",\n    \"alamat\": \"Jl. Test No. 123\"\n  },\n  \"keterangan\": \"Permohonan surat keterangan domisili\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pengajuan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pengajuan"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Get Letter Request Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pengajuan/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pengajuan",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Add Letter Type (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Surat Keterangan Usaha\",\n  \"deskripsi\": \"Surat untuk keperluan usaha\",\n  \"template\": \"template_surat_usaha\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tambah-jenis",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tambah-jenis"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👨‍💼 Admin Panel",
+      "item": [
+        {
+          "name": "1. Get All Letter Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/pengajuan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pengajuan"
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Get Letter Request Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/pengajuan/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pengajuan",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Approve Letter Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catatan\": \"Permohonan disetujui\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/pengajuan/1/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pengajuan",
+                "1",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Generate Letter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomor_surat\": \"SM/2025/001\",\n  \"tanggal_surat\": \"2025-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/pengajuan/1/generate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pengajuan",
+                "1",
+                "generate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. Reject Letter Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alasan\": \"Dokumen tidak lengkap\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/pengajuan/1/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "pengajuan",
+                "1",
+                "reject"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 Utility",
+      "item": [
+        {
+          "name": "API Routes List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/routes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "routes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "CSRF Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/../sanctum/csrf-cookie",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "..",
+                "sanctum",
+                "csrf-cookie"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
