@@ -69,7 +69,7 @@ class PengajuanController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function AddPengajuan(Request $request)
     {
         try {
             DB::beginTransaction();

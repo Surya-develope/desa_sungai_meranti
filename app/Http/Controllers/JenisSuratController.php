@@ -10,7 +10,26 @@ use PhpOffice\PhpSpreadsheet\IOFactory as SpreadsheetIOFactory;
 
 class JenisSuratController extends Controller
 {
-    public function store(Request $request)
+
+     public function jenisSuratList()
+    {
+        try {
+            $jenisSurat = JenisSurat::all();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Data jenis surat berhasil dimuat',
+                'data' => $jenisSurat
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat data jenis surat',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function AddLetter(Request $request)
     {
         try {
             // Validasi input
@@ -55,6 +74,7 @@ class JenisSuratController extends Controller
             ], 500);
         }
     }
+
 
     public function getPlaceholders(Request $request, $id)
     {

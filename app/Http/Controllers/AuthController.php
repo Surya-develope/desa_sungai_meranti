@@ -14,6 +14,7 @@ class AuthController extends Controller
     {
         return view('auth.login');
     }
+
     public function register(Request $r)
     {
         // Memeriksa jika request body kosong
@@ -29,20 +30,35 @@ class AuthController extends Controller
                 'password' => 'required|min:6'
             ]);
 
-            $user = UserDesa::create([
-                'nik' => $r->nik,
-                'nama' => $r->nama,
-                'email' => $r->email,
-                'password' => $r->password, // Password akan di-hash otomatis oleh setPasswordAttribute
-                'role_id' => 2 // misal 2 = warga
-            ]);
+             $roleId = 2;
+
+           // Jika user mengisi kode rahasia → cek validitas
+        if ($r->filled('kode_rahasia')) {
+            $kodeBenar = env('ADMIN_SECRET_CODE');
+            if ($r->kode_rahasia !== $kodeBenar) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kode rahasia tidak valid, gagal membuat akun admin',
+                ], 403);
+            }
+            $roleId = 1; // role admin
+        }
+
+        // Buat user
+        $user = UserDesa::create([
+            'nik' => $r->nik,
+            'nama' => $r->nama,
+            'email' => $r->email,
+            'password' => $r->password, // di-hash otomatis di model
+            'role_id' => $roleId,
+        ]);
 
             // Buat token sanctum untuk auto-login setelah register
             $token = $user->createToken('api-token')->plainTextToken;
 
             return response()->json([
                 'success' => true,
-                'message' => 'Registrasi berhasil',
+                'message' => $roleId === 1 ? 'Registrasi berhasil sebagai admin' : 'Registrasi berhasil sebagai warga',
                 'token' => $token,
                 'user' => [
                     'nik' => $user->nik,
@@ -143,6 +159,7 @@ class AuthController extends Controller
 
         return redirect()->route('login');
     }
+
 
     public function user(Request $request)
     {
