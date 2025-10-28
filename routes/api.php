@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\AdminPengajuanController;
+use App\Http\Controllers\JenisSuratController;
 use App\Http\Controllers\SuratTerbitController;
 
 // ✅ Semua endpoint lewat /api/...
@@ -13,6 +14,7 @@ Route::post('login', [AuthController::class, 'login']);
 // Public
 Route::post('pengajuan', [PengajuanController::class, 'store']);
 Route::get('jenis-surat', [PengajuanController::class, 'jenisSuratList']);
+Route::post('tambah-jenis', [JenisSuratController::class, 'store']);
 Route::get('pengajuan/{id}', [PengajuanController::class, 'show']);
 
 // Protected routes (admin)
