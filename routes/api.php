@@ -12,13 +12,15 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
 // Public
-Route::post('pengajuan', [PengajuanController::class, 'store']);
-Route::get('jenis-surat', [PengajuanController::class, 'jenisSuratList']);
-Route::post('tambah-jenis', [JenisSuratController::class, 'store']);
+
+Route::get('jenis-surat', [JenisSuratController::class, 'jenisSuratList']);
+Route::post('tambah-jenis', [JenisSuratController::class, 'AddLetter']);
 Route::get('pengajuan/{id}', [PengajuanController::class, 'show']);
 
 // Protected routes (auth required)
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('pengajuan', [PengajuanController::class, 'addPengajuan']);
     // Admin routes
     Route::prefix('admin')->group(function () {
         Route::get('pengajuan', [AdminPengajuanController::class, 'index']);
