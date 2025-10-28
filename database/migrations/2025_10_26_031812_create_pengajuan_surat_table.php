@@ -17,8 +17,8 @@ return new class extends Migration {
             $table->text('alasan_penolakan')->nullable();
             $table->timestamps();
 
-            $table->foreign('nik_pemohon')->references('nik')->on('user_desa')->onDelete('cascade');
-            $table->foreign('jenis_surat_id')->references('id')->on('jenis_surat')->onDelete('cascade');
+            $table->foreign('nik_pemohon')->references('nik')->on('user_desa')->onDelete('restrict');
+            $table->foreign('jenis_surat_id')->references('id')->on('jenis_surat')->onDelete('restrict');
         });
     }
 

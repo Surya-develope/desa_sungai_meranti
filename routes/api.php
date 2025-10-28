@@ -6,7 +6,6 @@ use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\AdminPengajuanController;
 use App\Http\Controllers\JenisSuratController;
 use App\Http\Controllers\SuratTerbitController;
-use App\Http\Controllers\JenisSuratController;
 
 // ✅ Semua endpoint lewat /api/...
 Route::post('register', [AuthController::class, 'register']);

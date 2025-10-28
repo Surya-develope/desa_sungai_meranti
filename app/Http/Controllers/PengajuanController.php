@@ -10,20 +10,60 @@ use Illuminate\Support\Facades\DB;
 
 class PengajuanController extends Controller
 {
-    public function jenisSuratList()
+    public function index(Request $request)
     {
         try {
-            $jenisSurat = JenisSurat::all();
-            
+            $userNik = $request->user()->nik;
+            $pengajuanList = PengajuanSurat::with('jenis')
+                ->where('nik_pemohon', $userNik)
+                ->orderByDesc('tanggal_pengajuan')
+                ->get();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Data jenis surat berhasil dimuat',
-                'data' => $jenisSurat
+                'message' => 'Daftar pengajuan berhasil dimuat',
+                'data' => $pengajuanList
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memuat data jenis surat',
+                'message' => 'Gagal memuat daftar pengajuan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        try {
+            $pengajuan = PengajuanSurat::findOrFail($id);
+
+            if ($pengajuan->nik_pemohon !== $request->user()->nik) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak berhak membatalkan pengajuan ini'
+                ], 403);
+            }
+
+            if ($pengajuan->status !== 'menunggu') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengajuan hanya bisa dibatalkan jika status menunggu'
+                ], 400);
+            }
+
+            $pengajuan->status = 'dibatalkan';
+            $pengajuan->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengajuan berhasil dibatalkan',
+                'data' => $pengajuan
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membatalkan pengajuan',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -42,7 +82,7 @@ class PengajuanController extends Controller
                 'data_pemohon.nik_pemohon' => 'required|string',
                 'data_pemohon.alamat' => 'required|string',
                 'keterangan' => 'required|string',
-                'file_syarat.*' => 'sometimes|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
+                'file_syarat.*' => 'sometimes|file|mimes:jpg,jpeg,png,pdf,docx,xlsx|max:5120', // 5MB, mendukung docx & xlsx
             ]);
 
             $nik = $validated['data_pemohon']['nik_pemohon'];
@@ -101,8 +141,24 @@ class PengajuanController extends Controller
         $files = [];
         if ($request->hasFile('file_syarat')) {
             foreach ($request->file('file_syarat') as $file) {
-                $path = $file->store('public/persyaratan');
-                $files[] = $path;
+                $ext = strtolower($file->getClientOriginalExtension());
+                $allowedExt = ['jpg', 'jpeg', 'png', 'pdf', 'docx', 'xlsx'];
+                if (!in_array($ext, $allowedExt)) {
+                    continue; // skip file tidak valid
+                }
+
+                // simpan file ke folder berdasarkan jenis surat
+                $folder = 'public/persyaratan/' . $jenisSuratId;
+                $filename = Str::uuid() . '.' . $ext;
+                $path = $file->storeAs($folder, $filename);
+
+                // catat metadata file
+                $files[] = [
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'mime' => $file->getMimeType(),
+                    'size_kb' => round($file->getSize() / 1024, 2)
+                ];
             }
         }
         return $files;
@@ -124,7 +180,7 @@ class PengajuanController extends Controller
             'nik_pemohon' => $nik,
             'jenis_surat_id' => $jenisSuratId,
             'tanggal_pengajuan' => now()->toDateString(),
-            'status' => 'menunggu_verifikasi',
+            'status' => 'menunggu',
             'data_isian' => [
                 'data_pemohon' => $dataPemohon,
                 'keterangan' => $keterangan
@@ -137,7 +193,7 @@ class PengajuanController extends Controller
     {
         try {
             $pengajuan = PengajuanSurat::with('jenis','suratTerbit','pemohon')->findOrFail($id);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data pengajuan berhasil dimuat',
@@ -154,7 +210,7 @@ class PengajuanController extends Controller
 
     public function create()
     {
-        $jenisSuratList = JenisSurat::all();
+        $jenisSuratList = JenisSurat::where('is_active', true)->get();
         return view('layout.create', compact('jenisSuratList'));
     }
 }

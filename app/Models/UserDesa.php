@@ -5,10 +5,12 @@ namespace App\Models;
 use Laravel\Sanctum\HasApiTokens; // ✅ import trait dari Sanctum
 use Illuminate\Foundation\Auth\User as Authenticatable; // ✅ ganti base class
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Role;
+use App\Models\PengajuanSurat;
 
-class UserDesa extends Model
+
+class UserDesa extends Authenticatable
 {
     use HasApiTokens, Notifiable;
 
