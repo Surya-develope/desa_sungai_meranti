@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserDesa extends Model
 {
-
-    use HasApiTokens, Notifiable; 
+    use HasApiTokens, Notifiable;
 
     protected $table = 'user_desa';
     protected $primaryKey = 'nik';
@@ -26,6 +25,12 @@ class UserDesa extends Model
         return $this->belongsTo(Role::class, 'role_id');
     }
 
+    // Alias accessor untuk compatibility dengan middleware
+    public function getRoleModelAttribute()
+    {
+        return $this->role;
+    }
+
     public function pengajuan()
     {
         return $this->hasMany(PengajuanSurat::class, 'nik_pemohon', 'nik');
@@ -34,5 +39,17 @@ class UserDesa extends Model
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = Hash::make($value);
+    }
+
+    // Helper method to check if user has specific role
+    public function hasRole($roleName)
+    {
+        return $this->role && $this->role->nama_role === $roleName;
+    }
+
+    // Helper method to check if user is admin
+    public function isAdmin()
+    {
+        return $this->hasRole('admin');
     }
 }

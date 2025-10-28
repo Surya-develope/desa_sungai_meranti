@@ -10,7 +10,13 @@ return new class extends Migration {
             $table->id();
             $table->string('nama_surat', 150);
             $table->string('file_template')->nullable();
+            $table->text('deskripsi')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent()->nullable();
+            
+            // Index untuk performa
+            $table->index(['is_active', 'nama_surat']);
         });
     }
 
