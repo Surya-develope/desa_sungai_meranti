@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('pengajuan_surat', function (Blueprint $table) {
             $table->id();
-            $table->string('nik_pemohon', 20);
+            $table->string('nik_pemohon', 16);
             $table->unsignedBigInteger('jenis_surat_id');
             $table->date('tanggal_pengajuan');
             $table->string('status', 50)->default('menunggu');

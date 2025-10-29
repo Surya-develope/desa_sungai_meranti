@@ -69,7 +69,7 @@ class PengajuanController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function AddPengajuan(Request $request)
     {
         try {
             DB::beginTransaction();
@@ -82,7 +82,7 @@ class PengajuanController extends Controller
                 'data_pemohon.nik_pemohon' => 'required|string',
                 'data_pemohon.alamat' => 'required|string',
                 'keterangan' => 'required|string',
-                'file_syarat.*' => 'sometimes|file|mimes:jpg,jpeg,png,pdf,docx,xlsx|max:5120', // 5MB, mendukung docx & xlsx
+                'file_syarat.*' => 'sometimes|file|mimes:jpg,jpeg,png,pdf,docx|max:204', // 5MB, mendukung docx & xlsx
             ]);
 
             $nik = $validated['data_pemohon']['nik_pemohon'];

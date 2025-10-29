@@ -6,17 +6,17 @@ use App\Models\UserDesa;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\QueryException;
 
 class AuthController extends Controller
 {
-
     public function showLoginForm()
     {
         return view('auth.login');
     }
+
     public function register(Request $r)
     {
-        // Memeriksa jika request body kosong
         if ($r->isJson() && count($r->all()) == 0) {
             return response()->json(['message' => 'Data tidak boleh kosong'], 400);
         }
@@ -29,20 +29,44 @@ class AuthController extends Controller
                 'password' => 'required|min:6'
             ]);
 
-            $user = UserDesa::create([
-                'nik' => $r->nik,
-                'nama' => $r->nama,
-                'email' => $r->email,
-                'password' => $r->password, // Password akan di-hash otomatis oleh setPasswordAttribute
-                'role_id' => 2 // misal 2 = warga
-            ]);
+            $roleId = 2;
 
-            // Buat token sanctum untuk auto-login setelah register
+            if ($r->filled('kode_rahasia')) {
+                $kodeBenar = env('ADMIN_SECRET_CODE');
+                if ($r->kode_rahasia !== $kodeBenar) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Kode rahasia tidak valid, gagal membuat akun admin',
+                    ], 403);
+                }
+                $roleId = 1;
+            }
+
+            try {
+                $user = UserDesa::create([
+                    'nik' => $r->nik,
+                    'nama' => $r->nama,
+                    'email' => $r->email,
+                    'password' => $r->password,
+                    'role_id' => $roleId,
+                ]);
+            } catch (QueryException $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan data user. Pastikan data valid dan tidak melanggar batasan database.',
+                ], 400);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat menyimpan data user.',
+                ], 500);
+            }
+
             $token = $user->createToken('api-token')->plainTextToken;
 
             return response()->json([
                 'success' => true,
-                'message' => 'Registrasi berhasil',
+                'message' => $roleId === 1 ? 'Registrasi berhasil sebagai admin' : 'Registrasi berhasil sebagai warga',
                 'token' => $token,
                 'user' => [
                     'nik' => $user->nik,
@@ -51,7 +75,8 @@ class AuthController extends Controller
                     'role_id' => $user->role_id
                 ]
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Data validation error',
                 'errors' => $e->errors()
@@ -61,34 +86,25 @@ class AuthController extends Controller
 
     public function login(Request $r)
     {
-        // Memeriksa jika request body kosong
         if ($r->isJson() && count($r->all()) == 0) {
             return response()->json(['message' => 'Data tidak boleh kosong'], 400);
         }
 
-        $expectsJson = $r->expectsJson() || $r->wantsJson() || $r->isJson();
+        try {
+            $validated = $r->validate([
+                'nik' => 'required',
+                'password' => 'required'
+            ]);
 
-        $validated = $r->validate([
-            'nik' => 'required',
-            'password' => 'required'
-        ]);
+            $user = UserDesa::with('role')->where('nik', $validated['nik'])->first();
 
-        $user = UserDesa::with('role')->where('nik', $validated['nik'])->first();
-
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
-            if ($expectsJson) {
+            if (!$user || !Hash::check($validated['password'], $user->password)) {
                 return response()->json([
                     'message' => 'NIK atau password salah',
                     'errors' => ['nik' => ['Credentials incorrect']]
                 ], 422);
             }
 
-            return back()
-                ->withErrors(['nik' => 'NIK atau password salah'])
-                ->withInput($r->only('nik'));
-        }
-
-        if ($expectsJson) {
             $token = $user->createToken('api-token')->plainTextToken;
 
             return response()->json([
@@ -102,46 +118,37 @@ class AuthController extends Controller
                     'role_id' => $user->role_id
                 ]
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat login. Silakan coba lagi.',
+            ], 500);
         }
-
-        Auth::login($user);
-
-        $r->session()->regenerate();
-
-        $roleName = optional($user->role)->nama_role;
-        $redirectRoute = $roleName === 'admin' ? 'admin.dashboard' : 'warga.dashboard';
-
-        return redirect()->route($redirectRoute);
     }
 
     public function logout(Request $request)
     {
-        if ($request->expectsJson() || $request->wantsJson() || $request->isJson()) {
-            try {
-                $user = $request->user();
-                if ($user && $user->currentAccessToken()) {
-                    $user->currentAccessToken()->delete();
-                }
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Logout berhasil'
-                ]);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Logout gagal',
-                    'error' => $e->getMessage()
-                ], 500);
+        try {
+            $user = $request->user();
+            if ($user && $user->currentAccessToken()) {
+                $user->currentAccessToken()->delete();
             }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout berhasil'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Logout gagal, silakan coba lagi.',
+            ], 500);
         }
-
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect()->route('login');
     }
 
     public function user(Request $request)
@@ -167,8 +174,7 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error mengambil data user',
-                'error' => $e->getMessage()
+                'message' => 'Gagal mengambil data user.',
             ], 500);
         }
     }
