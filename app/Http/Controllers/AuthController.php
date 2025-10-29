@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Models\UserDesa;
 use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
 
@@ -70,6 +71,12 @@ class AuthController extends Controller
                 ], 400);
             }
 
+            // For web registration, log the user in and redirect
+            if (!$r->isJson()) {
+                Auth::login($user);
+                return redirect()->intended(route('warga.dashboard'))->with('success', 'Registrasi berhasil! Selamat datang ' . $user->nama);
+            }
+
             $token = $user->createToken('api-token')->plainTextToken;
 
             return response()->json([
@@ -85,6 +92,9 @@ class AuthController extends Controller
             ], 201);
 
         } catch (ValidationException $e) {
+            if (!$r->isJson()) {
+                return back()->withErrors($e->errors())->withInput();
+            }
             return response()->json([
                 'message' => 'Data validation error',
                 'errors' => $e->errors()
@@ -107,12 +117,34 @@ class AuthController extends Controller
             $user = UserDesa::with('role')->where('nik', $validated['nik'])->first();
 
             if (!$user || !Hash::check($validated['password'], $user->password)) {
+                // Handle web form submission
+                if (!$r->isJson()) {
+                    return back()->withErrors([
+                        'nik' => 'NIK atau password salah'
+                    ])->withInput($r->only('nik'));
+                }
+                
                 return response()->json([
                     'message' => 'NIK atau password salah',
                     'errors' => ['nik' => ['Credentials incorrect']]
                 ], 422);
             }
 
+            // Handle web form submission
+            if (!$r->isJson()) {
+                Auth::login($user);
+                
+                // Redirect based on user role
+                $roleName = $user->role ? $user->role->nama_role : 'warga';
+                
+                if ($roleName === 'admin') {
+                    return redirect()->intended(route('admin.dashboard'))->with('success', 'Selamat datang, ' . $user->nama . '!');
+                } else {
+                    return redirect()->intended(route('warga.dashboard'))->with('success', 'Selamat datang, ' . $user->nama . '!');
+                }
+            }
+
+            // Handle API login
             $token = $user->createToken('api-token')->plainTextToken;
 
             return response()->json([
@@ -127,6 +159,9 @@ class AuthController extends Controller
                 ]
             ]);
         } catch (ValidationException $e) {
+            if (!$r->isJson()) {
+                return back()->withErrors($e->errors())->withInput();
+            }
             return response()->json([
                 'message' => 'Validasi gagal',
                 'errors' => $e->errors()
@@ -137,6 +172,15 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
+            // Handle web logout
+            if (!$request->isJson()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return redirect()->route('login')->with('success', 'Berhasil logout');
+            }
+
+            // Handle API logout
             $user = $request->user();
             if ($user && $user->currentAccessToken()) {
                 $user->currentAccessToken()->delete();

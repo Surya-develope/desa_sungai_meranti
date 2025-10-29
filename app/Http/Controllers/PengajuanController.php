@@ -208,10 +208,11 @@ class PengajuanController extends Controller
         }
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $jenisSuratList = JenisSurat::where('is_active', true)->get();
-        return view('layout.create', compact('jenisSuratList'));
+        $selectedJenisId = $request->query('jenis'); // Get selected jenis from URL parameter
+        return view('layout.create', compact('jenisSuratList', 'selectedJenisId'));
     }
 
     public function jenis()

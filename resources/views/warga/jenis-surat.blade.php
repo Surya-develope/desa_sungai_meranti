@@ -15,13 +15,23 @@
 
         <!-- Back Button -->
         <div class="mb-8">
-            <a href="{{ route('home') }}" 
-               class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                </svg>
-                Kembali ke Beranda
-            </a>
+            @auth
+                <a href="{{ route('warga.dashboard') }}"
+                   class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Kembali ke Dashboard
+                </a>
+            @else
+                <a href="{{ route('home') }}"
+                   class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Kembali ke Beranda
+                </a>
+            @endauth
         </div>
 
         <!-- Letter Types Grid -->

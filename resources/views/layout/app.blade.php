@@ -21,10 +21,63 @@
                     </div>
                 </a>
                 
-                <!-- Desktop Auth Buttons -->
+                <!-- Desktop Auth Section -->
                 <div class="hidden lg:flex items-center space-x-4">
-                    <a href="{{ route('login') }}" class="text-white hover:text-yellow-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200 border border-white/20 hover:border-yellow-300">Masuk</a>
-                    <a href="{{ route('register') }}" class="bg-yellow-400 hover:bg-yellow-300 text-green-900 px-4 py-2 rounded-lg font-bold transition-all duration-200">Daftar</a>
+                    @auth
+                        <!-- User Info Dropdown -->
+                        <div class="relative group">
+                            <button class="flex items-center space-x-3 bg-green-600 hover:bg-green-500 rounded-lg px-4 py-2 transition-all duration-200">
+                                <div class="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                                    <span class="text-green-900 font-bold text-sm">{{ strtoupper(substr(Auth::user()->nama, 0, 2)) }}</span>
+                                </div>
+                                <div class="text-left">
+                                    <p class="text-white font-medium text-sm">{{ Auth::user()->nama }}</p>
+                                    <p class="text-green-100 text-xs capitalize">{{ Auth::user()->role->nama_role ?? 'User' }}</p>
+                                </div>
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            
+                            <!-- Dropdown Menu -->
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                <div class="py-2">
+                                    <div class="px-4 py-2 border-b border-gray-200">
+                                        <p class="text-gray-900 font-medium text-sm">{{ Auth::user()->nama }}</p>
+                                        <p class="text-gray-600 text-xs">{{ Auth::user()->email }}</p>
+                                    </div>
+                                    @if(Auth::user()->role && Auth::user()->role->nama_role === 'admin')
+                                        <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 text-sm">
+                                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v14a2 2 0 01-2 2H8a2 2 0 01-2-2V5z"></path>
+                                            </svg>
+                                            Dashboard Admin
+                                        </a>
+                                    @else
+                                        <a href="{{ route('warga.dashboard') }}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 text-sm">
+                                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                            Dashboard Saya
+                                        </a>
+                                    @endif
+                                    <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="flex items-center w-full px-4 py-2 text-red-600 hover:bg-red-50 text-sm">
+                                            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                                            </svg>
+                                            Keluar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="text-white hover:text-yellow-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200 border border-white/20 hover:border-yellow-300">Masuk</a>
+                        <a href="{{ route('register') }}" class="bg-yellow-400 hover:bg-yellow-300 text-green-900 px-4 py-2 rounded-lg font-bold transition-all duration-200">Daftar</a>
+                    @endauth
                 </div>
 
                 <!-- Mobile Menu Button -->
@@ -38,10 +91,36 @@
             <!-- Mobile Menu -->
             <div class="lg:hidden hidden" id="mobile-menu">
                 <div class="px-4 pt-2 pb-3 space-y-1 border-t border-green-600">
-                    <div class="pt-4 mt-4 border-t border-green-600 space-y-2">
-                        <a href="{{ route('login') }}" class="block w-full text-center text-white hover:text-yellow-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200 border border-white/20 hover:border-yellow-300">Masuk</a>
-                        <a href="{{ route('register') }}" class="block w-full text-center bg-yellow-400 hover:bg-yellow-300 text-green-900 px-4 py-2 rounded-lg font-bold transition-all duration-200">Daftar</a>
-                    </div>
+                    @auth
+                        <!-- Mobile User Info -->
+                        <div class="px-2 py-3 border-b border-green-600">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center">
+                                    <span class="text-green-900 font-bold">{{ strtoupper(substr(Auth::user()->nama, 0, 2)) }}</span>
+                                </div>
+                                <div>
+                                    <p class="text-white font-medium">{{ Auth::user()->nama }}</p>
+                                    <p class="text-green-200 text-sm capitalize">{{ Auth::user()->role->nama_role ?? 'User' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            @if(Auth::user()->role && Auth::user()->role->nama_role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}" class="block px-2 py-2 text-white hover:bg-green-600 rounded-lg">Dashboard Admin</a>
+                            @else
+                                <a href="{{ route('warga.dashboard') }}" class="block px-2 py-2 text-white hover:bg-green-600 rounded-lg">Dashboard Saya</a>
+                            @endif
+                            <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                @csrf
+                                <button type="submit" class="block w-full text-left px-2 py-2 text-red-200 hover:bg-red-600 rounded-lg">Keluar</button>
+                            </form>
+                        </div>
+                    @else
+                        <div class="pt-4 mt-4 border-t border-green-600 space-y-2">
+                            <a href="{{ route('login') }}" class="block w-full text-center text-white hover:text-yellow-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200 border border-white/20 hover:border-yellow-300">Masuk</a>
+                            <a href="{{ route('register') }}" class="block w-full text-center bg-yellow-400 hover:bg-yellow-300 text-green-900 px-4 py-2 rounded-lg font-bold transition-all duration-200">Daftar</a>
+                        </div>
+                    @endauth
                 </div>
             </div>
         </div>

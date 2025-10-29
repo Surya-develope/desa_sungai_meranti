@@ -3,14 +3,16 @@
 @section('content')
 <div class="max-w-3xl mx-auto p-6 bg-white rounded shadow">
     <h2 class="text-2xl font-bold mb-4">Buat Pengajuan Surat Baru</h2>
-    <form id="pengajuanForm" method="POST" action="{{ route('pengajuan.store') }}" enctype="multipart/form-data">
+    <form id="pengajuanForm" method="POST" action="{{ route('pengajuan.create') }}" enctype="multipart/form-data">
         @csrf
         <div class="mb-4">
             <label for="jenis_surat_id" class="block font-semibold mb-2">Jenis Surat</label>
             <select id="jenis_surat_id" name="jenis_surat_id" class="w-full border border-gray-300 rounded p-2" required>
                 <option value="">Pilih Jenis Surat</option>
                 @foreach($jenisSuratList as $jenis)
-                    <option value="{{ $jenis->id }}">{{ $jenis->nama_surat }}</option>
+                    <option value="{{ $jenis->id }}" {{ (old('jenis_surat_id', $selectedJenisId ?? '') == $jenis->id) ? 'selected' : '' }}>
+                        {{ $jenis->nama_surat }}
+                    </option>
                 @endforeach
             </select>
         </div>
@@ -30,40 +32,57 @@
 </div>
 
 <script>
-document.getElementById('jenis_surat_id').addEventListener('change', function() {
-    const jenisSuratId = this.value;
-    const dynamicFieldsContainer = document.getElementById('dynamicFields');
-    dynamicFieldsContainer.innerHTML = '';
+document.addEventListener('DOMContentLoaded', function() {
+    const jenisSuratSelect = document.getElementById('jenis_surat_id');
+    
+    // Function to load dynamic fields
+    function loadDynamicFields(jenisSuratId) {
+        const dynamicFieldsContainer = document.getElementById('dynamicFields');
+        dynamicFieldsContainer.innerHTML = '';
 
-    if (!jenisSuratId) return;
+        if (!jenisSuratId) return;
 
-    fetch(`/api/jenis-surat/${jenisSuratId}/placeholders`)
-        .then(response => response.json())
-        .then(fields => {
-            fields.forEach(field => {
-                const div = document.createElement('div');
-                div.classList.add('mb-4');
+        fetch(`/api/jenis-surat/${jenisSuratId}/placeholders`)
+            .then(response => response.json())
+            .then(fields => {
+                fields.forEach(field => {
+                    const div = document.createElement('div');
+                    div.classList.add('mb-4');
 
-                const label = document.createElement('label');
-                label.setAttribute('for', field.key);
-                label.classList.add('block', 'font-semibold', 'mb-2');
-                label.textContent = field.label;
+                    const label = document.createElement('label');
+                    label.setAttribute('for', field.key);
+                    label.classList.add('block', 'font-semibold', 'mb-2');
+                    label.textContent = field.label;
 
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.id = field.key;
-                input.name = `data_pemohon[${field.key}]`;
-                input.classList.add('w-full', 'border', 'border-gray-300', 'rounded', 'p-2');
-                input.required = true;
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = field.key;
+                    input.name = `data_pemohon[${field.key}]`;
+                    input.classList.add('w-full', 'border', 'border-gray-300', 'rounded', 'p-2');
+                    input.required = true;
 
-                div.appendChild(label);
-                div.appendChild(input);
-                dynamicFieldsContainer.appendChild(div);
+                    div.appendChild(label);
+                    div.appendChild(input);
+                    dynamicFieldsContainer.appendChild(div);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching placeholders:', error);
             });
-        })
-        .catch(error => {
-            console.error('Error fetching placeholders:', error);
-        });
+    }
+    
+    // Event listener for jenis_surat change
+    jenisSuratSelect.addEventListener('change', function() {
+        loadDynamicFields(this.value);
+    });
+
+    // Auto-load fields if jenis is pre-selected (when coming from jenis-surat page)
+    if (jenisSuratSelect.value) {
+        // Small delay to ensure the select is fully rendered
+        setTimeout(() => {
+            loadDynamicFields(jenisSuratSelect.value);
+        }, 100);
+    }
 });
 </script>
 @endsection
