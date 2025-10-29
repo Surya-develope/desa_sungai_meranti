@@ -73,9 +73,9 @@ Route::middleware('auth')->group(function () {
         
         // Admin Jenis Surat Routes
         Route::get('/jenis-surat', [JenisSuratController::class, 'adminIndex'])->name('admin.jenis-surat.index');
-        Route::post('/jenis-surat', [JenisSuratController::class, 'adminStore'])->name('admin.jenis-surat.store');
+        Route::post('/jenis-surat', [JenisSuratController::class, 'AddLetter'])->name('admin.jenis-surat.store');
         Route::get('/jenis-surat/{jenisSurat}', [JenisSuratController::class, 'adminShow'])->name('admin.jenis-surat.show');
-        Route::put('/jenis-surat/{jenisSurat}', [JenisSuratController::class, 'adminUpdate'])->name('admin.jenis-surat.update');
+        Route::put('/jenis-surat/{jenisSurat}', [JenisSuratController::class, 'update'])->name('admin.jenis-surat.update');
         Route::delete('/jenis-surat/{jenisSurat}', [JenisSuratController::class, 'adminDestroy'])->name('admin.jenis-surat.destroy');
         Route::patch('/jenis-surat/{jenisSurat}/toggle-status', [JenisSuratController::class, 'adminToggleStatus'])->name('admin.jenis-surat.toggle-status');
     });
