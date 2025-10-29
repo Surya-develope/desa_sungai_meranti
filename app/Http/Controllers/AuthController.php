@@ -3,7 +3,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\UserDesa;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
@@ -17,7 +17,7 @@ class AuthController extends Controller
 
     public function register(Request $r)
     {
-        if ($r->isJson() && count($r->all()) == 0) {
+        if ($r->isJson() && count($r->all()) === 0) {
             return response()->json(['message' => 'Data tidak boleh kosong'], 400);
         }
 
@@ -29,8 +29,13 @@ class AuthController extends Controller
                 'password' => 'required|min:6'
             ]);
 
-            $roleId = 2;
+            // Default role "warga"
+            $role = Role::where('nama_role', 'warga')->first();
+            if (!$role) {
+                return response()->json(['success' => false, 'message' => 'Role warga tidak ditemukan'], 500);
+            }
 
+            // Jika kode rahasia ada, set role admin
             if ($r->filled('kode_rahasia')) {
                 $kodeBenar = env('ADMIN_SECRET_CODE');
                 if ($r->kode_rahasia !== $kodeBenar) {
@@ -39,7 +44,10 @@ class AuthController extends Controller
                         'message' => 'Kode rahasia tidak valid, gagal membuat akun admin',
                     ], 403);
                 }
-                $roleId = 1;
+                $adminRole = Role::where('nama_role', 'admin')->first();
+                if ($adminRole) {
+                    $role = $adminRole;
+                }
             }
 
             try {
@@ -48,25 +56,20 @@ class AuthController extends Controller
                     'nama' => $r->nama,
                     'email' => $r->email,
                     'password' => $r->password,
-                    'role_id' => $roleId,
+                    'role_id' => $role->id,
                 ]);
             } catch (QueryException $e) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Gagal menyimpan data user. Pastikan data valid dan tidak melanggar batasan database.',
                 ], 400);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terjadi kesalahan saat menyimpan data user.',
-                ], 500);
             }
 
             $token = $user->createToken('api-token')->plainTextToken;
 
             return response()->json([
                 'success' => true,
-                'message' => $roleId === 1 ? 'Registrasi berhasil sebagai admin' : 'Registrasi berhasil sebagai warga',
+                'message' => $role->nama_role === 'admin' ? 'Registrasi berhasil sebagai admin' : 'Registrasi berhasil sebagai warga',
                 'token' => $token,
                 'user' => [
                     'nik' => $user->nik,
@@ -86,7 +89,7 @@ class AuthController extends Controller
 
     public function login(Request $r)
     {
-        if ($r->isJson() && count($r->all()) == 0) {
+        if ($r->isJson() && count($r->all()) === 0) {
             return response()->json(['message' => 'Data tidak boleh kosong'], 400);
         }
 
@@ -123,11 +126,6 @@ class AuthController extends Controller
                 'message' => 'Validasi gagal',
                 'errors' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat login. Silakan coba lagi.',
-            ], 500);
         }
     }
 

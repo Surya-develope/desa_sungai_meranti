@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\JenisSurat;
@@ -11,14 +10,11 @@ use PhpOffice\PhpWord\IOFactory;
 
 class JenisSuratController extends Controller
 {
-    /**
-     * Menampilkan semua jenis surat.
-     */
+    // Menampilkan semua jenis surat
     public function jenisSuratList()
     {
         try {
             $jenisSurat = JenisSurat::all();
-
             return response()->json([
                 'success' => true,
                 'message' => 'Data jenis surat berhasil dimuat',
@@ -33,9 +29,7 @@ class JenisSuratController extends Controller
         }
     }
 
-    /**
-     * Menambahkan jenis surat baru dan membaca placeholder dari file template.
-     */
+    // Menambahkan jenis surat baru
     public function AddLetter(Request $request)
     {
         try {
@@ -87,9 +81,7 @@ class JenisSuratController extends Controller
         }
     }
 
-    /**
-     * Memperbarui data jenis surat beserta template dan struktur form-nya.
-     */
+    // Update jenis surat
     public function update(Request $request, JenisSurat $jenisSurat)
     {
         try {
@@ -111,17 +103,9 @@ class JenisSuratController extends Controller
             $payload = $validator->validated();
             $updates = [];
 
-            if (array_key_exists('nama_surat', $payload)) {
-                $updates['nama_surat'] = $payload['nama_surat'];
-            }
-
-            if (array_key_exists('deskripsi', $payload)) {
-                $updates['deskripsi'] = $payload['deskripsi'];
-            }
-
-            if (array_key_exists('is_active', $payload)) {
-                $updates['is_active'] = $payload['is_active'];
-            }
+            if (isset($payload['nama_surat'])) $updates['nama_surat'] = $payload['nama_surat'];
+            if (isset($payload['deskripsi'])) $updates['deskripsi'] = $payload['deskripsi'];
+            if (isset($payload['is_active'])) $updates['is_active'] = $payload['is_active'];
 
             if ($request->hasFile('file_template')) {
                 $file = $request->file('file_template');
@@ -138,9 +122,7 @@ class JenisSuratController extends Controller
                 $updates['form_structure'] = $formStructure;
             }
 
-            if (!empty($updates)) {
-                $jenisSurat->update($updates);
-            }
+            if (!empty($updates)) $jenisSurat->update($updates);
 
             $jenisSurat->refresh();
 
@@ -158,70 +140,41 @@ class JenisSuratController extends Controller
         }
     }
 
-    /**
-     * Ambil placeholder dari template berdasarkan ID surat.
-     */
+    // Ambil placeholder dari template
     public function getPlaceholders(Request $request, $id)
     {
         $jenisSurat = JenisSurat::findOrFail($id);
 
         if (!$jenisSurat->file_template || !Storage::disk('public')->exists($jenisSurat->file_template)) {
-            return response()->json([
-                'success' => true,
-                'data' => [],
-            ]);
+            return response()->json(['success' => true, 'data' => []]);
         }
 
         $templateFile = Storage::disk('public')->path($jenisSurat->file_template);
         $ext = strtolower(pathinfo($templateFile, PATHINFO_EXTENSION));
-
         $placeholders = $this->extractFormStructure($templateFile, $ext);
 
-        return response()->json([
-            'success' => true,
-            'data' => $placeholders,
-        ]);
+        return response()->json(['success' => true, 'data' => $placeholders]);
     }
 
-    /**
-     * Ekstrak struktur form berdasarkan tipe file template.
-     */
+    // Extract form structure dari file template
     private function extractFormStructure(string $filePath, string $extension): array
     {
-        if (!file_exists($filePath)) {
-            return [];
-        }
-
-        if (in_array($extension, ['doc', 'docx'])) {
-            return $this->extractDocxPlaceholders($filePath);
-        }
-
-        if ($extension === 'xlsx') {
-            return $this->extractXlsxPlaceholders($filePath);
-        }
-
+        if (!file_exists($filePath)) return [];
+        if (in_array($extension, ['doc', 'docx'])) return $this->extractDocxPlaceholders($filePath);
+        if ($extension === 'xlsx') return $this->extractXlsxPlaceholders($filePath);
         return [];
     }
 
-    /**
-     * Ekstrak placeholder dari file DOCX/DOC.
-     */
     private function extractDocxPlaceholders(string $filePath): array
     {
         $placeholders = [];
-
-        if (!file_exists($filePath)) {
-            return $placeholders;
-        }
-
         try {
             $phpWord = IOFactory::load($filePath);
-        } catch (\Throwable $throwable) {
-            return $placeholders;
+        } catch (\Throwable $e) {
+            return [];
         }
 
         $text = '';
-
         foreach ($phpWord->getSections() as $section) {
             foreach ($section->getElements() as $element) {
                 $text .= $this->extractTextFromElement($element);
@@ -229,59 +182,39 @@ class JenisSuratController extends Controller
         }
 
         preg_match_all('/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/', $text, $matches);
-
         if (!empty($matches[1])) {
             foreach (array_unique($matches[1]) as $key) {
-                $key = trim($key);
                 $placeholders[] = [
-                    'name' => $key,
+                    'name' => trim($key),
                     'label' => ucwords(str_replace('_', ' ', $key)),
                     'type' => 'text',
                 ];
             }
         }
-
         return $placeholders;
     }
 
-    /**
-     * Rekursif ambil teks dari semua elemen dalam dokumen Word (termasuk nested runs).
-     */
     private function extractTextFromElement($element): string
     {
         $text = '';
-
         if (method_exists($element, 'getText')) {
-            $value = $element->getText();
-            if (is_string($value)) {
-                $text .= ' ' . $value;
-            }
+            $text .= ' ' . $element->getText();
         }
-
         if (method_exists($element, 'getElements')) {
             foreach ($element->getElements() as $child) {
                 $text .= $this->extractTextFromElement($child);
             }
         }
-
         return $text;
     }
 
-    /**
-     * Ekstrak placeholder dari file XLSX.
-     */
     private function extractXlsxPlaceholders(string $filePath): array
     {
         $placeholders = [];
-
-        if (!file_exists($filePath)) {
-            return $placeholders;
-        }
-
         try {
             $spreadsheet = SpreadsheetIOFactory::load($filePath);
-        } catch (\Throwable $throwable) {
-            return $placeholders;
+        } catch (\Throwable $e) {
+            return [];
         }
 
         $sheet = $spreadsheet->getActiveSheet();
@@ -290,18 +223,14 @@ class JenisSuratController extends Controller
 
         foreach ($cells as $cell) {
             $value = $sheet->getCell($cell)->getValue();
-            if (is_string($value)) {
-                $text .= $value . ' ';
-            }
+            if (is_string($value)) $text .= $value . ' ';
         }
 
         preg_match_all('/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/', $text, $matches);
-
         if (!empty($matches[1])) {
             foreach (array_unique($matches[1]) as $key) {
-                $key = trim($key);
                 $placeholders[] = [
-                    'name' => $key,
+                    'name' => trim($key),
                     'label' => ucwords(str_replace('_', ' ', $key)),
                     'type' => 'text',
                 ];
