@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\JenisSurat;
 
-class JenisSuratSeeder extends Seeder
+class JenisSuratSeed extends Seeder
 {
     public function run(): void
     {
@@ -40,6 +40,36 @@ class JenisSuratSeeder extends Seeder
                 'deskripsi' => 'Surat yang menerangkan kelahiran bayi di wilayah desa.',
                 'is_active' => true,
             ],
+            [
+                'nama_surat' => 'Surat Keterangan Catatan Kriminal',
+                'file_template' => 'templates/surat_skc.docx',
+                'deskripsi' => 'Surat keterangan tentang catatan kriminal seseorang.',
+                'is_active' => true,
+            ],
+            [
+                'nama_surat' => 'Surat Keterangan Penghasilan',
+                'file_template' => 'templates/surat_penghasilan.docx',
+                'deskripsi' => 'Surat yang menerangkan penghasilan seseorang atau keluarga.',
+                'is_active' => true,
+            ],
+            [
+                'nama_surat' => 'Surat Keterangan Belum Menikah',
+                'file_template' => 'templates/surat_belum_menikah.docx',
+                'deskripsi' => 'Surat yang menerangkan seseorang belum menikah.',
+                'is_active' => true,
+            ],
+            [
+                'nama_surat' => 'Surat Keterangan Sudah Menikah',
+                'file_template' => 'templates/surat_sudah_menikah.docx',
+                'deskripsi' => 'Surat yang menerangkan seseorang sudah menikah.',
+                'is_active' => true,
+            ],
+            [
+                'nama_surat' => 'Surat Keterangan Kematian',
+                'file_template' => 'templates/surat_kematian.docx',
+                'deskripsi' => 'Surat yang menerangkan kematian seseorang di wilayah desa.',
+                'is_active' => true,
+            ]
         ];
 
         foreach ($data as $item) {

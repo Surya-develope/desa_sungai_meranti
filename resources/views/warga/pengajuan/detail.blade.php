@@ -23,7 +23,7 @@
                 'dibatalkan' => 'Dibatalkan',
             ];
             $statusClasses = [
-                'menunggu' => 'bg-blue-100 text-blue-700',
+                'menunggu' => 'bg-green-100 text-green-700',
                 'menunggu_verifikasi' => 'bg-indigo-100 text-indigo-700',
                 'disetujui' => 'bg-emerald-100 text-emerald-700',
                 'ditolak' => 'bg-rose-100 text-rose-700',

@@ -13,6 +13,9 @@ class DatabaseSeeder extends Seeder
     {
         // Jalankan seeder RoleSeeder
         $this->call(RoleSeeder::class);
+        
+        // Jalankan seeder JenisSuratSeed
+        $this->call(JenisSuratSeed::class);
 
         // Kalau kamu ingin tambahkan seeder lain nanti, tinggal panggil di sini.
         // Contoh:

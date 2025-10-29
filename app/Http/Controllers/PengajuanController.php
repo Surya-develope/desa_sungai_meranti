@@ -213,4 +213,10 @@ class PengajuanController extends Controller
         $jenisSuratList = JenisSurat::where('is_active', true)->get();
         return view('layout.create', compact('jenisSuratList'));
     }
+
+    public function jenis()
+    {
+        $jenisSuratList = JenisSurat::where('is_active', true)->get();
+        return view('warga.jenis-surat', compact('jenisSuratList'));
+    }
 }

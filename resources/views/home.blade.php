@@ -1,43 +1,127 @@
 @extends('layout.app')
 
+@section('title', 'Beranda - Desa Sungai Meranti')
+
 @section('content')
-<div class="relative">
-    <!-- Background Image -->
-    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('images/desasungaimeranti.jpeg') }}'); height: 100vh;">
-        <div class="absolute inset-0 bg-black opacity-50"></div>
-    </div>
+<!-- Hero Section -->
+<section class="relative min-h-screen flex items-center bg-green-900 pt-0" style="background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('{{ asset('Desa-teluk-Meranti-1.jpg') }}'); background-size: cover; background-position: center; background-attachment: fixed;">
+    <!-- Background Overlay -->
+    <div class="absolute inset-0 bg-green-900/30"></div>
+    <div class="absolute inset-0 bg-green-900/20"></div>
     
-    <div class="relative z-10 text-center py-24">
-        <h1 class="text-4xl md:text-5xl font-bold text-white">Selamat Datang di Website Desa Sungai Meranti</h1>
-        <p class="mt-4 text-lg text-white">Melayani masyarakat dengan cepat, transparan, dan modern.</p>
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-96 h-96 bg-green-300/10 rounded-full animate-pulse"></div>
+        <div class="absolute top-1/2 -left-20 w-80 h-80 bg-emerald-300/15 rounded-full animate-bounce"></div>
+        <div class="absolute bottom-20 right-1/3 w-64 h-64 bg-lime-300/10 rounded-full animate-pulse delay-1000"></div>
     </div>
-</div>
 
-<div class="container mx-auto px-4 py-12 relative z-20">
-    <div class="grid md:grid-cols-3 gap-8 text-center">
-        {{-- Card Pembuatan Surat --}}
-        <div class="bg-white p-6 rounded-lg shadow-lg transition transform hover:scale-105 hover:shadow-2xl">
-            <svg class="w-16 h-16 mx-auto text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            <h4 class="text-xl font-semibold mt-3">Pembuatan Surat</h4>
-            <p class="text-gray-600 mt-2">Buat berbagai surat administrasi desa secara online dengan mudah.</p>
-            <a href="{{ route('pengajuan.create') }}" class="mt-4 inline-block bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 transition">Masuk</a>
-        </div>
-
-        {{-- Card Data Penduduk --}}
-        <div class="bg-white p-6 rounded-lg shadow-lg transition transform hover:scale-105 hover:shadow-2xl">
-            <svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-            <h4 class="text-xl font-semibold mt-3">Data Penduduk</h4>
-            <p class="text-gray-600 mt-2">Lihat dan kelola data penduduk desa secara real-time.</p>
-            <a href="{{ route('penduduk') }}" class="mt-4 inline-block bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600 transition">Lihat Data</a>
-        </div>
-
-        {{-- Card Profil Desa --}}
-        <div class="bg-white p-6 rounded-lg shadow-lg transition transform hover:scale-105 hover:shadow-2xl">
-            <svg class="w-16 h-16 mx-auto text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            <h4 class="text-xl font-semibold mt-3">Profil Desa</h4>
-            <p class="text-gray-600 mt-2">Jelajahi profil, sejarah, dan potensi Desa Sungai Meranti.</p>
-            <a href="{{ route('profil') }}" class="mt-4 inline-block bg-cyan-500 text-white font-bold py-2 px-4 rounded hover:bg-cyan-600 transition">Kunjungi</a>
+    <div class="container mx-auto px-8 relative z-10">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+            <div class="text-center lg:text-left">
+                <h2 class="text-6xl lg:text-8xl font-bold text-white mb-10 leading-tight tracking-tight">
+                    Administrasi Desa<br>
+                    <span class="text-emerald-300 relative">
+                        Digital Terdepan
+                        <div class="absolute -bottom-2 left-0 w-full h-1 bg-emerald-400/50 rounded-full"></div>
+                    </span>
+                </h2>
+                
+                <p class="text-2xl lg:text-3xl text-green-100 mb-12 leading-relaxed max-w-3xl font-light">
+                    Melayani masyarakat dengan sistem informasi yang modern, transparan, dan mudah diakses.
+                    Semua layanan administrasi desa dalam satu platform digital terdepan.
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 justify-center lg:justify-start">
+                    <a href="{{ route('administrasi') }}" class="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-5 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-2xl hover:shadow-emerald-500/30 flex items-center justify-center">
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                        Administrasi Online
+                    </a>
+                    <a href="https://desasungaimeranti.id/" target="_blank" class="bg-green-700 hover:bg-green-600 text-white px-8 py-5 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-2xl hover:shadow-green-600/30 flex items-center justify-center">
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        Web Profil
+                    </a>
+                    <a href="{{ route('tracking') }}" class="bg-lime-600 hover:bg-lime-500 text-white px-8 py-5 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-2xl hover:shadow-lime-500/30 flex items-center justify-center">
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"/>
+                        </svg>
+                        Tracking Surat
+                    </a>
+                </div>
+            </div>
+            
+            <div class="hidden lg:block">
+                <div class="bg-white/15 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/30 hover:bg-white/20 transition-all duration-300">
+                    <h3 class="text-3xl font-bold text-white mb-8 text-center">Statistik Desa</h3>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="text-center group">
+                            <div class="text-6xl font-black text-emerald-300 mb-2 group-hover:scale-110 transition-transform" data-count="2847">0</div>
+                            <div class="text-green-100 font-medium text-lg">Total Penduduk</div>
+                        </div>
+                        <div class="text-center group">
+                            <div class="text-6xl font-black text-emerald-300 mb-2 group-hover:scale-110 transition-transform" data-count="756">0</div>
+                            <div class="text-green-100 font-medium text-lg">Kepala Keluarga</div>
+                        </div>
+                        <div class="text-center group">
+                            <div class="text-6xl font-black text-emerald-300 mb-2 group-hover:scale-110 transition-transform" data-count="23">0</div>
+                            <div class="text-green-100 font-medium text-lg">Dusun</div>
+                        </div>
+                        <div class="text-center group">
+                            <div class="text-6xl font-black text-emerald-300 mb-2 group-hover:scale-110 transition-transform" data-count="1">0</div>
+                            <div class="text-green-100 font-medium text-lg">Desa</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+
+    <!-- Scroll Indicator -->
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+        <div class="animate-bounce">
+            <svg class="w-8 h-8 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const counters = document.querySelectorAll('[data-count]');
+    const speed = 200;
+
+    counters.forEach(counter => {
+        const updateCount = () => {
+            const target = +counter.getAttribute('data-count');
+            const count = +counter.innerText;
+            const inc = target / speed;
+
+            if (count < target) {
+                counter.innerText = Math.ceil(count + inc);
+                setTimeout(updateCount, 1);
+            } else {
+                counter.innerText = target.toLocaleString();
+            }
+        };
+        updateCount();
+    });
+});
+</script>
+
+<style>
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+</style>
+
 @endsection

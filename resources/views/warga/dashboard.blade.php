@@ -9,11 +9,24 @@
                 <h1 class="text-2xl font-bold text-gray-800">Dashboard Warga</h1>
                 <p class="text-sm text-gray-500">Pantau seluruh pengajuan surat yang telah Anda ajukan.</p>
             </div>
-            <div class="flex items-center gap-3">
-                <a href="{{ route('pengajuan.create') }}"
-                   class="inline-flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white font-semibold px-4 py-2 rounded-md transition duration-200">
-                    <span class="text-lg leading-none">＋</span>
-                    Buat Pengajuan Baru
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="{{ route('pengajuan.create') }}" class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-3 rounded-lg transition duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
+                    Administrasi Online
+                </a>
+                <a href="https://desasungaimeranti.id/" target="_blank" class="inline-flex items-center justify-center gap-2 bg-green-700 hover:bg-green-800 text-white font-semibold px-4 py-3 rounded-lg transition duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    Web Profil
+                </a>
+                <a href="{{ route('tracking') }}" class="inline-flex items-center justify-center gap-2 bg-lime-600 hover:bg-lime-700 text-white font-semibold px-4 py-3 rounded-lg transition duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7"/>
+                    </svg>
+                    Tracking Surat
                 </a>
             </div>
         </div>
@@ -35,9 +48,9 @@
                 <p class="text-sm text-gray-500">Total Pengajuan</p>
                 <p class="mt-2 text-2xl font-semibold text-gray-800">{{ $summary['total'] }}</p>
             </div>
-            <div class="rounded-lg border border-blue-200 bg-blue-50 p-5 shadow-sm">
-                <p class="text-sm text-blue-600">Menunggu</p>
-                <p class="mt-2 text-2xl font-semibold text-blue-700">{{ $summary['menunggu'] }}</p>
+            <div class="rounded-lg border border-green-200 bg-green-50 p-5 shadow-sm">
+                <p class="text-sm text-green-600">Menunggu</p>
+                <p class="mt-2 text-2xl font-semibold text-green-700">{{ $summary['menunggu'] }}</p>
             </div>
             <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
                 <p class="text-sm text-emerald-600">Disetujui</p>
@@ -70,7 +83,7 @@
                             'dibatalkan' => 'Dibatalkan',
                         ];
                         $statusClasses = [
-                            'menunggu' => 'bg-blue-100 text-blue-700',
+                            'menunggu' => 'bg-green-100 text-green-700',
                             'menunggu_verifikasi' => 'bg-indigo-100 text-indigo-700',
                             'disetujui' => 'bg-emerald-100 text-emerald-700',
                             'ditolak' => 'bg-rose-100 text-rose-700',
@@ -98,7 +111,7 @@
                         <td class="whitespace-nowrap px-6 py-4 text-sm">
                             <div class="flex flex-wrap items-center gap-2">
                                 <a href="{{ route('warga.pengajuan.show', $pengajuan) }}"
-                                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition">
+                                   class="inline-flex items-center rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100 transition">
                                     Detail
                                 </a>
 

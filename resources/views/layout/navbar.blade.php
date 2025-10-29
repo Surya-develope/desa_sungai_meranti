@@ -2,13 +2,13 @@
   <div class="container mx-auto px-4">
     <div class="flex items-center justify-between py-3">
       <!-- Logo dan Nama Desa -->
-      <div class="flex items-center space-x-3">
+      <a href="{{ route('home') }}" class="flex items-center space-x-3 hover:bg-white/10 rounded-md p-2 transition-all duration-300 cursor-pointer">
         <img src="{{ asset('logo-desa.png') }}" alt="Logo Desa Sungai Meranti" class="w-12 h-12">
         <div>
           <h1 class="text-white text-base font-bold">Pemerintah Desa Sungai Meranti</h1>
           <p class="text-white text-xs">Kec. Pinggir Kab. Bengkalis</p>
         </div>
-      </div>
+      </a>
     </div>
   </div>
   <!-- Navigasi Geser -->
