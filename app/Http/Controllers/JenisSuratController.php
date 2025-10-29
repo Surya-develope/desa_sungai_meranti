@@ -5,7 +5,8 @@ use App\Models\JenisSurat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-
+use PhpOffice\PhpSpreadsheet\IOFactory as SpreadsheetIOFactory;
+use PhpOffice\PhpWord\IOFactory;
 
 class JenisSuratController extends Controller
 {
@@ -166,9 +167,31 @@ class JenisSuratController extends Controller
 
     private function extractDocxPlaceholders(string $filePath): array
     {
-        // Simplified version - returns empty array for now
-        // In production, you would implement proper docx parsing here
-        return [];
+        $placeholders = [];
+        try {
+            $phpWord = IOFactory::load($filePath);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $text = '';
+        foreach ($phpWord->getSections() as $section) {
+            foreach ($section->getElements() as $element) {
+                $text .= $this->extractTextFromElement($element);
+            }
+        }
+
+        preg_match_all('/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/', $text, $matches);
+        if (!empty($matches[1])) {
+            foreach (array_unique($matches[1]) as $key) {
+                $placeholders[] = [
+                    'name' => trim($key),
+                    'label' => ucwords(str_replace('_', ' ', $key)),
+                    'type' => 'text',
+                ];
+            }
+        }
+        return $placeholders;
     }
 
     private function extractTextFromElement($element): string
@@ -201,115 +224,33 @@ class JenisSuratController extends Controller
 
     private function extractXlsxPlaceholders(string $filePath): array
     {
-        // Simplified version - returns empty array for now
-        // In production, you would implement proper xlsx parsing here
-        return [];
-    }
-
-    // Admin methods for web interface
-    public function adminIndex()
-    {
-        $jenisSuratList = JenisSurat::orderBy('created_at', 'desc')->get();
-        return view('admin.jenis-surat.index', compact('jenisSuratList'));
-    }
-
-    public function adminStore(Request $request)
-    {
-        // API call from frontend
-        return $this->AddLetter($request);
-    }
-
-    public function adminShow(JenisSurat $jenisSurat)
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $jenisSurat
-        ]);
-    }
-
-    public function adminUpdate(Request $request, JenisSurat $jenisSurat)
-    {
-        // API call from frontend
-        return $this->update($request, $jenisSurat);
-    }
-
-    public function adminDestroy(JenisSurat $jenisSurat)
-    {
+        $placeholders = [];
         try {
-            if ($jenisSurat->file_template) {
-                Storage::disk('public')->delete($jenisSurat->file_template);
+            $spreadsheet = SpreadsheetIOFactory::load($filePath);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $sheet = $spreadsheet->getActiveSheet();
+        $cells = $sheet->getCellCollection();
+        $text = '';
+
+        foreach ($cells as $cell) {
+            $value = $sheet->getCell($cell)->getValue();
+            if (is_string($value)) $text .= $value . ' ';
+        }
+
+        preg_match_all('/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/', $text, $matches);
+        if (!empty($matches[1])) {
+            foreach (array_unique($matches[1]) as $key) {
+                $placeholders[] = [
+                    'name' => trim($key),
+                    'label' => ucwords(str_replace('_', ' ', $key)),
+                    'type' => 'text',
+                ];
             }
-            $jenisSurat->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Jenis Surat berhasil dihapus!'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus jenis surat',
-                'error' => $e->getMessage(),
-            ], 500);
         }
-    }
 
-    public function adminToggleStatus(JenisSurat $jenisSurat)
-    {
-        try {
-            $jenisSurat->update([
-                'is_active' => !$jenisSurat->is_active
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Status jenis surat berhasil diperbarui!',
-                'data' => $jenisSurat
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memperbarui status jenis surat',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    // Additional methods for web interface
-    public function activeOnly()
-    {
-        try {
-            $jenisSurat = JenisSurat::where('is_active', true)->get();
-            return response()->json([
-                'success' => true,
-                'message' => 'Data jenis surat aktif berhasil dimuat',
-                'data' => $jenisSurat,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memuat data jenis surat',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function index()
-    {
-        // Public index - shows all types
-        return $this->jenisSuratList();
-    }
-
-    public function show(JenisSurat $jenisSurat)
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $jenisSurat
-        ]);
-    }
-
-    public function destroy(JenisSurat $jenisSurat)
-    {
-        return $this->adminDestroy($jenisSurat);
+        return $placeholders;
     }
 }
