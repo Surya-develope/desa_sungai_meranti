@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PengajuanController;
 use App\Http\Controllers\AdminPengajuanController;
 use App\Http\Controllers\AuthController;
@@ -9,6 +10,18 @@ use App\Http\Controllers\JenisSuratController;
 use App\Http\Controllers\TrackingController;
 
 Route::get('/', function () {
+    // Check if user is authenticated
+    if (Auth::check()) {
+        $user = Auth::user();
+        // Redirect based on user role
+        $userRole = $user->role ? $user->role->nama_role : 'warga';
+        if ($userRole === 'admin') {
+            return redirect()->route('admin.dashboard');
+        } else {
+            return redirect()->route('warga.dashboard');
+        }
+    }
+    // Show home page for unauthenticated users
     return view('home');
 })->name('home');
 
@@ -27,8 +40,6 @@ Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('r
 
 // Public Routes
 Route::get('/administrasi', [PengajuanController::class, 'jenis'])->name('administrasi');
-Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking');
-Route::get('/tracking/{id}', [TrackingController::class, 'show'])->name('tracking.show');
 Route::view('/penduduk', 'home')->name('penduduk');
 Route::view('/profil', 'home')->name('profil');
 

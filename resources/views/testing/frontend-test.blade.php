@@ -57,9 +57,7 @@
                         <a href="{{ route('pengajuan.create') }}" class="block w-full text-center bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition">
                             Submit Letter
                         </a>
-                        <a href="{{ route('tracking') }}" class="block w-full text-center bg-cyan-600 text-white py-2 px-4 rounded-lg hover:bg-cyan-700 transition">
-                            Tracking
-                        </a>
+                        
                     </div>
                 </div>
 
