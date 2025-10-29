@@ -197,14 +197,28 @@ class JenisSuratController extends Controller
     private function extractTextFromElement($element): string
     {
         $text = '';
-        if (method_exists($element, 'getText')) {
-            $text .= ' ' . $element->getText();
+
+        if ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
+            foreach ($element->getElements() as $child) {
+                $text .= $this->extractTextFromElement($child);
+            }
+            return $text;
         }
+
+       
+        if (method_exists($element, 'getText')) {
+            $value = $element->getText();
+            if (is_string($value)) {
+                $text .= $value . ' ';
+            }
+        }
+
         if (method_exists($element, 'getElements')) {
             foreach ($element->getElements() as $child) {
                 $text .= $this->extractTextFromElement($child);
             }
         }
+
         return $text;
     }
 
