@@ -10,11 +10,13 @@ class JenisSurat extends Model
     protected $fillable = [
         'nama_surat',
         'file_template',
+        'form_structure',
         'deskripsi',
         'is_active'
     ];
     
     protected $casts = [
+        'form_structure' => 'array',
         'is_active' => 'boolean'
     ];
 
