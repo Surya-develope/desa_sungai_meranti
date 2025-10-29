@@ -181,4 +181,27 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    // Password Reset Methods
+    public function showForgotPasswordForm()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        // Placeholder implementation - replace with actual email sending
+        return redirect()->route('login')->with('success', 'Link reset password telah dikirim ke email Anda');
+    }
+
+    public function showResetPasswordForm($token = null)
+    {
+        return view('auth.reset-password', compact('token'));
+    }
+
+    public function resetPassword(Request $request)
+    {
+        // Placeholder implementation - replace with actual password reset logic
+        return redirect()->route('login')->with('success', 'Password berhasil diupdate');
+    }
 }

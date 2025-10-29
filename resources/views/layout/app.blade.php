@@ -55,6 +55,9 @@
         });
     </script>
 
+    <!-- Notification Container -->
+    @include('components.notification-container')
+
     <!-- Main Content -->
     <main class="flex-1">
         @yield('content')

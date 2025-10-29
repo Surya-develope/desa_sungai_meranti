@@ -253,4 +253,111 @@ class JenisSuratController extends Controller
 
         return $placeholders;
     }
+
+    // Admin methods for web interface
+    public function adminIndex()
+    {
+        $jenisSuratList = JenisSurat::orderBy('created_at', 'desc')->get();
+        return view('admin.jenis-surat.index', compact('jenisSuratList'));
+    }
+
+    public function adminStore(Request $request)
+    {
+        // API call from frontend
+        return $this->AddLetter($request);
+    }
+
+    public function adminShow(JenisSurat $jenisSurat)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $jenisSurat
+        ]);
+    }
+
+    public function adminUpdate(Request $request, JenisSurat $jenisSurat)
+    {
+        // API call from frontend
+        return $this->update($request, $jenisSurat);
+    }
+
+    public function adminDestroy(JenisSurat $jenisSurat)
+    {
+        try {
+            if ($jenisSurat->file_template) {
+                Storage::disk('public')->delete($jenisSurat->file_template);
+            }
+            $jenisSurat->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Jenis Surat berhasil dihapus!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus jenis surat',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function adminToggleStatus(JenisSurat $jenisSurat)
+    {
+        try {
+            $jenisSurat->update([
+                'is_active' => !$jenisSurat->is_active
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status jenis surat berhasil diperbarui!',
+                'data' => $jenisSurat
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui status jenis surat',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // Additional methods for web interface
+    public function activeOnly()
+    {
+        try {
+            $jenisSurat = JenisSurat::where('is_active', true)->get();
+            return response()->json([
+                'success' => true,
+                'message' => 'Data jenis surat aktif berhasil dimuat',
+                'data' => $jenisSurat,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat data jenis surat',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function index()
+    {
+        // Public index - shows all types
+        return $this->jenisSuratList();
+    }
+
+    public function show(JenisSurat $jenisSurat)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $jenisSurat
+        ]);
+    }
+
+    public function destroy(JenisSurat $jenisSurat)
+    {
+        return $this->adminDestroy($jenisSurat);
+    }
 }

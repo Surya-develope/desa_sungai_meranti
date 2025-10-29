@@ -2,16 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\PengajuanSurat;
 
 class TrackingController extends Controller
 {
-    public function check($kode)
+    public function index()
     {
-        $data = PengajuanSurat::where('tracking_code', $kode)
-            ->with(['user', 'suratType', 'riwayat' => fn($q) => $q->orderBy('created_at')])
-            ->firstOrFail();
+        return view('warga.tracking');
+    }
 
-        return response()->json($data);
+    public function show(Request $request, $id = null)
+    {
+        // Remove # from ID if present
+        $id = str_replace('#', '', $id);
+        
+        if (!$id || !is_numeric($id)) {
+            return view('warga.tracking', [
+                'pengajuan' => null,
+                'search' => $request->get('id')
+            ]);
+        }
+
+        $pengajuan = PengajuanSurat::with(['user', 'jenis_surat', 'suratTerbit'])
+            ->where('id', $id)
+            ->first();
+
+        return view('warga.tracking', [
+            'pengajuan' => $pengajuan,
+            'search' => $id
+        ]);
     }
 }

@@ -219,4 +219,75 @@ class PengajuanController extends Controller
         $jenisSuratList = JenisSurat::where('is_active', true)->get();
         return view('warga.jenis-surat', compact('jenisSuratList'));
     }
+
+    public function store(Request $request)
+    {
+        try {
+            // Handle web form submission
+            $validated = $request->validate([
+                'jenis_surat_id' => 'required|exists:jenis_surat,id',
+                'nama_pemohon' => 'required|string',
+                'nik_pemohon' => 'required|string|size:16',
+                'tempat_lahir' => 'required|string',
+                'tanggal_lahir' => 'required|date',
+                'alamat' => 'required|string',
+                'no_hp' => 'required|string',
+                'pekerjaan' => 'required|string',
+                'keterangan' => 'required|string',
+                'ktp' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+                'kk' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+                'dokumen_lainnya' => 'nullable|file|mimes:jpg,jpeg,png,pdf,docx|max:2048',
+                'agree_terms' => 'required',
+            ]);
+
+            // Prepare data for API method
+            $webRequest = new Request([
+                'jenis_surat_id' => $validated['jenis_surat_id'],
+                'data_pemohon' => [
+                    'nama' => $validated['nama_pemohon'],
+                    'nik_pemohon' => $validated['nik_pemohon'],
+                    'alamat' => $validated['alamat'],
+                    'tempat_lahir' => $validated['tempat_lahir'],
+                    'tanggal_lahir' => $validated['tanggal_lahir'],
+                    'no_hp' => $validated['no_hp'],
+                    'pekerjaan' => $validated['pekerjaan'],
+                ],
+                'keterangan' => $validated['keterangan']
+            ]);
+
+            // Handle file uploads manually since we're converting from web form
+            $webRequest->files->set('file_syarat', []);
+            
+            if ($request->hasFile('ktp')) {
+                $webRequest->files->add([$request->file('ktp')]);
+            }
+            if ($request->hasFile('kk')) {
+                $webRequest->files->add([$request->file('kk')]);
+            }
+            if ($request->hasFile('dokumen_lainnya')) {
+                $webRequest->files->add([$request->file('dokumen_lainnya')]);
+            }
+
+            $response = $this->AddPengajuan($webRequest);
+            $data = $response->getData();
+
+            if ($data->success) {
+                return redirect()->route('warga.dashboard')
+                    ->with('success', 'Pengajuan berhasil dikirim! Nomor pengajuan: #' . $data->data->id);
+            } else {
+                return redirect()->back()
+                    ->withErrors(['error' => $data->message])
+                    ->withInput();
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput();
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withErrors(['error' => 'Gagal mengirim pengajuan: ' . $e->getMessage()])
+                ->withInput();
+        }
+    }
 }
