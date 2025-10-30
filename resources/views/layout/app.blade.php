@@ -16,8 +16,8 @@
                 <a href="{{ route('home') }}" class="flex items-center space-x-4 hover:bg-green-600 rounded-lg p-2 transition-all duration-300 cursor-pointer">
                     <img src="{{ asset('logo-desa.png') }}" alt="Logo Desa" class="w-12 h-12 rounded-full border-2 border-white/20">
                     <div>
-                        <h1 class="text-xl font-bold tracking-wide">Desa Sungai Meranti</h1>
-                        <p class="text-green-100 text-sm">Kabupaten Bengkalis, Riau</p>
+                        <h1 class="text-xl font-bold tracking-wide">Pemerintah Desa Sungai Meranti</h1>
+                        <p class="text-green-100 text-sm">Kacamatan Pinggir Kabupaten Bengkalis</p>
                     </div>
                 </a>
                 
