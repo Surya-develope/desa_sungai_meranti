@@ -140,20 +140,22 @@ class JenisSuratController extends Controller
         }
     }
 
-    // Ambil placeholder dari template
+    // Ambil placeholder dari database
     public function getPlaceholders(Request $request, $id)
     {
         $jenisSurat = JenisSurat::findOrFail($id);
 
-        if (!$jenisSurat->file_template || !Storage::disk('public')->exists($jenisSurat->file_template)) {
-            return response()->json(['success' => true, 'data' => []]);
+        // Return form_structure from database
+        $formStructure = $jenisSurat->form_structure ?? [];
+
+        // If no form_structure in database, try to extract from file if exists
+        if (empty($formStructure) && $jenisSurat->file_template && Storage::disk('public')->exists($jenisSurat->file_template)) {
+            $templateFile = Storage::disk('public')->path($jenisSurat->file_template);
+            $ext = strtolower(pathinfo($templateFile, PATHINFO_EXTENSION));
+            $formStructure = $this->extractFormStructure($templateFile, $ext);
         }
 
-        $templateFile = Storage::disk('public')->path($jenisSurat->file_template);
-        $ext = strtolower(pathinfo($templateFile, PATHINFO_EXTENSION));
-        $placeholders = $this->extractFormStructure($templateFile, $ext);
-
-        return response()->json(['success' => true, 'data' => $placeholders]);
+        return response()->json(['success' => true, 'data' => $formStructure]);
     }
 
     // Extract form structure dari file template

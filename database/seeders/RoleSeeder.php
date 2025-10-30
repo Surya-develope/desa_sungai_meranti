@@ -9,9 +9,14 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('role')->insert([
+        DB::table('role')->updateOrInsert(
             ['nama_role' => 'admin'],
+            ['nama_role' => 'admin']
+        );
+        
+        DB::table('role')->updateOrInsert(
             ['nama_role' => 'warga'],
-        ]);
+            ['nama_role' => 'warga']
+        );
     }
 }

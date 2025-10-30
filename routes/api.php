@@ -14,6 +14,7 @@ Route::post('login', [AuthController::class, 'login']);
 // Public
 
 Route::get('jenis-surat', [JenisSuratController::class, 'jenisSuratList']);
+Route::get('jenis-surat/{id}/placeholders', [JenisSuratController::class, 'getPlaceholders']);
 Route::post('tambah-jenis', [JenisSuratController::class, 'AddLetter']);
 Route::get('pengajuan/{id}', [PengajuanController::class, 'show']);
 
