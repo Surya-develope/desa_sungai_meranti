@@ -212,7 +212,8 @@ class PengajuanController extends Controller
     {
         $jenisSuratList = JenisSurat::where('is_active', true)->get();
         $selectedJenisId = $request->query('jenis'); // Get selected jenis from URL parameter
-        return view('layout.create', compact('jenisSuratList', 'selectedJenisId'));
+        $user = $request->user(); // Get authenticated user
+        return view('warga/pengajuan/form-pengajuan', compact('jenisSuratList', 'selectedJenisId', 'user'));
     }
 
     public function jenis()
@@ -221,40 +222,112 @@ class PengajuanController extends Controller
         return view('warga.jenis-surat', compact('jenisSuratList'));
     }
 
+    public function getFormStructure($jenisSuratId)
+    {
+        try {
+            $jenisSurat = JenisSurat::findOrFail($jenisSuratId);
+            
+            $formStructure = [];
+            
+            if ($jenisSurat->form_structure) {
+                // Check if it's already an array or needs to be decoded from JSON
+                if (is_array($jenisSurat->form_structure)) {
+                    $formStructure = $jenisSurat->form_structure;
+                } else {
+                    $formStructure = json_decode($jenisSurat->form_structure, true);
+                }
+            }
+            
+            // If no form structure, return empty array (frontend will show "no data" message)
+            if (empty($formStructure)) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Form structure berhasil dimuat',
+                    'data' => []
+                ]);
+            } else {
+                // Convert existing structure to match expected format
+                $formStructure = array_map(function($field) {
+                    return [
+                        'key' => $field['name'] ?? $field['field_name'] ?? '',
+                        'name' => $field['name'] ?? $field['field_name'] ?? '',
+                        'label' => $field['label'] ?? $field['name'] ?? $field['field_name'] ?? '',
+                        'type' => $field['type'] ?? 'text'
+                    ];
+                }, $formStructure);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Form structure berhasil dimuat',
+                'data' => $formStructure
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat struktur form',
+                'error' => $e->getMessage()
+            ], 404);
+        }
+    }
+
     public function store(Request $request)
     {
         try {
-            // Handle web form submission
-            $validated = $request->validate([
+            // Handle web form submission - support both dynamic and legacy formats
+            $rules = [
                 'jenis_surat_id' => 'required|exists:jenis_surat,id',
-                'nama_pemohon' => 'required|string',
-                'nik_pemohon' => 'required|string|size:16',
-                'tempat_lahir' => 'required|string',
-                'tanggal_lahir' => 'required|date',
-                'alamat' => 'required|string',
-                'no_hp' => 'required|string',
-                'pekerjaan' => 'required|string',
                 'keterangan' => 'required|string',
                 'ktp' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
                 'kk' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
                 'dokumen_lainnya' => 'nullable|file|mimes:jpg,jpeg,png,pdf,docx|max:2048',
                 'agree_terms' => 'required',
-            ]);
+            ];
+
+            // Check if this is a dynamic form submission
+            if ($request->has('data_pemohon') && is_array($request->data_pemohon)) {
+                // Dynamic form - validate the data_pemohon array
+                $dataPemohon = $request->data_pemohon;
+                $rules['data_pemohon.*'] = 'required|string';
+            } else {
+                // Legacy form - validate individual fields
+                $rules = array_merge($rules, [
+                    'nama_pemohon' => 'required|string',
+                    'nik_pemohon' => 'required|string|size:16',
+                    'tempat_lahir' => 'required|string',
+                    'tanggal_lahir' => 'required|date',
+                    'alamat' => 'required|string',
+                    'no_hp' => 'required|string',
+                    'pekerjaan' => 'required|string',
+                ]);
+            }
+
+            $validated = $request->validate($rules);
 
             // Prepare data for API method
-            $webRequest = new Request([
-                'jenis_surat_id' => $validated['jenis_surat_id'],
-                'data_pemohon' => [
-                    'nama' => $validated['nama_pemohon'],
-                    'nik_pemohon' => $validated['nik_pemohon'],
-                    'alamat' => $validated['alamat'],
-                    'tempat_lahir' => $validated['tempat_lahir'],
-                    'tanggal_lahir' => $validated['tanggal_lahir'],
-                    'no_hp' => $validated['no_hp'],
-                    'pekerjaan' => $validated['pekerjaan'],
-                ],
-                'keterangan' => $validated['keterangan']
-            ]);
+            if ($request->has('data_pemohon') && is_array($request->data_pemohon)) {
+                // Dynamic form data
+                $webRequest = new Request([
+                    'jenis_surat_id' => $validated['jenis_surat_id'],
+                    'data_pemohon' => $validated['data_pemohon'],
+                    'keterangan' => $validated['keterangan']
+                ]);
+            } else {
+                // Legacy form data
+                $webRequest = new Request([
+                    'jenis_surat_id' => $validated['jenis_surat_id'],
+                    'data_pemohon' => [
+                        'nama' => $validated['nama_pemohon'],
+                        'nik_pemohon' => $validated['nik_pemohon'],
+                        'alamat' => $validated['alamat'],
+                        'tempat_lahir' => $validated['tempat_lahir'],
+                        'tanggal_lahir' => $validated['tanggal_lahir'],
+                        'no_hp' => $validated['no_hp'],
+                        'pekerjaan' => $validated['pekerjaan'],
+                    ],
+                    'keterangan' => $validated['keterangan']
+                ]);
+            }
 
             // Handle file uploads manually since we're converting from web form
             $webRequest->files->set('file_syarat', []);

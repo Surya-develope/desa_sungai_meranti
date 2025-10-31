@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
         // Run seeders in correct order to maintain relationships
         $this->call([
             RoleSeeder::class,        // Base data
-            JenisSuratSeed::class,    // Service data
+            // JenisSuratSeed::class,    // Service data - removed to allow manual entry
             UserSeeder::class,        // User data
             PengajuanSuratSeeder::class, // Application data
             SuratTerbitSeeder::class, // Generated documents
