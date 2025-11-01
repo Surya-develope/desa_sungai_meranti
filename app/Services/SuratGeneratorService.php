@@ -4,11 +4,13 @@ namespace App\Services;
 use PhpOffice\PhpWord\TemplateProcessor;
 use PhpOffice\PhpWord\IOFactory;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 use Dompdf\Dompdf;
-use App\Models\PengajuanSurat;    
+use App\Models\PengajuanSurat;
 
 class SuratGeneratorService
 {
+
     public function generateFromTemplate(PengajuanSurat $pengajuan)
     {
         $jenis = $pengajuan->jenis;
@@ -37,7 +39,7 @@ class SuratGeneratorService
         $tpl = new TemplateProcessor($tempDocPath);
 
         // isi placeholder dari $pengajuan->data_isian
-        $data = $pengajuan->data_isian ?? [];
+        $data = $this->buildTemplateData($pengajuan);
 
         foreach ($data as $key => $val) {
             // kalau val array => join
@@ -48,8 +50,7 @@ class SuratGeneratorService
             }
         }
 
-        // Contoh: set tanggal sekarang dan nama desa
-        $tpl->setValue('tanggal', now()->format('d F Y'));
+        // Contoh: set data default lainnya
         $tpl->setValue('desa', 'Desa Sungai Meranti');
 
         try {
@@ -99,6 +100,22 @@ class SuratGeneratorService
         }
     }
     
+    private function buildTemplateData(PengajuanSurat $pengajuan): array
+    {
+        $data = $pengajuan->data_isian ?? [];
+
+        $now = Carbon::now('Asia/Jakarta');
+        $now->locale('id');
+
+        $localizedDate = $now->translatedFormat('d F Y');
+
+        return array_merge($data, [
+            'year' => $now->format('Y'),
+            'Date_Terbit' => $localizedDate,
+            'tanggal' => $localizedDate,
+        ]);
+    }
+
     private function generateFromExcel(PengajuanSurat $pengajuan, string $templatePath)
     {
         if (!file_exists($templatePath)) {
@@ -107,7 +124,7 @@ class SuratGeneratorService
     
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($templatePath);
         $sheet = $spreadsheet->getActiveSheet();
-        $data = $pengajuan->data_isian ?? [];
+        $data = $this->buildTemplateData($pengajuan);
     
         foreach ($data as $key => $val) {
             $placeholder = '{{' . $key . '}}';

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class PengajuanController extends Controller
 {
+
     public function index(Request $request)
     {
         try {
@@ -129,13 +130,7 @@ class PengajuanController extends Controller
         }
     }
 
-    /**
-     * Upload and store files.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $jenisSuratId
-     * @return array
-     */
+    
     private function uploadFiles(Request $request, $jenisSuratId)
     {
         $files = [];
@@ -163,17 +158,7 @@ class PengajuanController extends Controller
         }
         return $files;
     }
-
-    /**
-     * Create a new pengajuan surat record.
-     *
-     * @param  string  $nik
-     * @param  int  $jenisSuratId
-     * @param  array  $dataPemohon
-     * @param  array  $files
-     * @param  string  $keterangan
-     * @return \App\Models\PengajuanSurat
-     */
+  
     private function createPengajuan($nik, $jenisSuratId, $dataPemohon, $files, $keterangan)
     {
         return PengajuanSurat::create([

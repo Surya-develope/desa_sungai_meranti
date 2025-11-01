@@ -67,6 +67,27 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {
+        // Template serving route with CORS headers for Office Online preview
+        Route::get('/templates/{filename}', function($filename) {
+            $path = 'templates/' . $filename;
+            
+            if (!Storage::disk('public')->exists($path)) {
+                abort(404);
+            }
+            
+            $filePath = Storage::disk('public')->path($path);
+            $file = response()->file($filePath);
+            
+            // Add CORS headers for Office Online preview
+            $file->withHeaders([
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Headers' => 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+            ]);
+            
+            return $file;
+        })->name('admin.templates.download');
+        
         // Admin Pengajuan Routes
         Route::get('/pengajuan', [AdminPengajuanController::class, 'index'])->name('admin.pengajuan.index');
         Route::get('/pengajuan/{id}', [AdminPengajuanController::class, 'show'])->name('admin.pengajuan.show');
@@ -81,6 +102,10 @@ Route::middleware('auth')->group(function () {
         Route::put('/jenis-surat/{jenisSurat}', [JenisSuratController::class, 'update'])->name('admin.jenis-surat.update');
         Route::delete('/jenis-surat/{jenisSurat}', [JenisSuratController::class, 'adminDestroy'])->name('admin.jenis-surat.destroy');
         Route::patch('/jenis-surat/{jenisSurat}/toggle-status', [JenisSuratController::class, 'adminToggleStatus'])->name('admin.jenis-surat.toggle-status');
+        
+        // Bulk Operations Routes
+        Route::patch('/jenis-surat/bulk-toggle-status', [JenisSuratController::class, 'bulkToggleStatus'])->name('admin.jenis-surat.bulk-toggle-status');
+        Route::delete('/jenis-surat/bulk-delete', [JenisSuratController::class, 'bulkDelete'])->name('admin.jenis-surat.bulk-delete');
     });
 });
 
@@ -92,3 +117,17 @@ Route::prefix('api/admin')->middleware(['auth', 'role:admin'])->group(function (
 
 // Testing Route (remove in production)
 // Route::view('/testing', 'testing.frontend-test')->name('testing');
+
+// CSRF Test Route
+Route::get('/csrf-test', function() {
+    return view('csrf-test');
+})->name('test.csrf');
+
+Route::post('/csrf-test', function() {
+    return response()->json([
+        'success' => true,
+        'message' => 'CSRF token validated successfully!',
+        'data' => request()->all(),
+        'timestamp' => now()
+    ]);
+})->name('test.csrf.post');
