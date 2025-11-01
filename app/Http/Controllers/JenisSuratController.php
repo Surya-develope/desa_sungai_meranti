@@ -257,23 +257,32 @@ class JenisSuratController extends Controller
     }
 
     // Admin Methods
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
         try {
             $jenisSurat = JenisSurat::withCount('pengajuanSurat')
                 ->orderByDesc('created_at')
                 ->get();
             
-            return response()->json([
-                'success' => true,
-                'data' => $jenisSurat
-            ]);
+            // Check if this is a web request or API request
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $jenisSurat
+                ]);
+            }
+
+            // For web requests, return the view with data
+            return view('admin.jenis-surat.index', compact('jenisSurat'));
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memuat data jenis surat',
-                'error' => $e->getMessage()
-            ], 500);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memuat data jenis surat',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+            throw $e;
         }
     }
 

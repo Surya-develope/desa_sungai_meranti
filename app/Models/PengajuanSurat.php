@@ -14,6 +14,7 @@ class PengajuanSurat extends Model
     protected $casts = [
         'data_isian' => 'array',
         'file_syarat' => 'array',
+        'tanggal_pengajuan' => 'date',
     ];
 
     public function pemohon()

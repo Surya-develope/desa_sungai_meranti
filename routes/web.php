@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WargaDashboardController;
 use App\Http\Controllers\JenisSuratController;
 use App\Http\Controllers\TrackingController;
+use App\Http\Controllers\AdminDashboardController;
 
 Route::get('/', function () {
     // Check if user is authenticated
@@ -43,6 +44,10 @@ Route::get('/administrasi', [PengajuanController::class, 'jenis'])->name('admini
 Route::view('/penduduk', 'home')->name('penduduk');
 Route::view('/profil', 'home')->name('profil');
 
+// API Routes for dynamic form (Public - no auth required)
+Route::get('api/jenis-surat/{jenisSuratId}/placeholders', [PengajuanController::class, 'getFormStructure'])->name('jenis-surat.placeholders');
+Route::get('api/pengajuan/form-structure/{jenisSuratId}', [PengajuanController::class, 'getFormStructure'])->name('pengajuan.form-structure');
+
 // Protected Routes
 Route::middleware('auth')->group(function () {
     // Pengajuan Routes
@@ -58,9 +63,7 @@ Route::middleware('auth')->group(function () {
 
     // Admin Routes
     Route::middleware('role:admin')->group(function () {
-        Route::get('/admin/dashboard', function () {
-            return view('admin.dashboard');
-        })->name('admin.dashboard');
+        Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     });
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {
@@ -81,5 +84,11 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+// API Routes for Admin (must be after web routes)
+Route::prefix('api/admin')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/dashboard-stats', [AdminDashboardController::class, 'dashboardStats']);
+    Route::get('/recent-pengajuan', [AdminDashboardController::class, 'recentPengajuan']);
+});
+
 // Testing Route (remove in production)
-Route::view('/testing', 'testing.frontend-test')->name('testing');
+// Route::view('/testing', 'testing.frontend-test')->name('testing');

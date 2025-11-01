@@ -11,7 +11,7 @@ class AdminPengajuanController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = PengajuanSurat::with('pemohon', 'jenis')->orderBy('created_at', 'desc');
+            $query = PengajuanSurat::with('pemohon', 'jenis', 'suratTerbit')->orderBy('created_at', 'desc');
 
             if ($request->has('status')) {
                 $query->where('status', $request->status);
@@ -27,36 +27,54 @@ class AdminPengajuanController extends Controller
 
             $list = $query->paginate(15)->withQueryString();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data pengajuan berhasil dimuat',
-                'data' => $list
-            ]);
+            // Check if this is an AJAX request (for data loading)
+            if ($request->header('Accept') === 'application/json' || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data pengajuan berhasil dimuat',
+                    'data' => $list
+                ]);
+            }
+
+            // For web requests, return the view with data
+            return view('admin.pengajuan.index', compact('list'));
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memuat data pengajuan',
-                'error' => $e->getMessage()
-            ], 500);
+            if ($request->header('Accept') === 'application/json' || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memuat data pengajuan',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+            throw $e;
         }
     }
 
-    public function show($id)
+    public function show($id, Request $request)
     {
         try {
             $pengajuan = PengajuanSurat::with('pemohon','jenis','suratTerbit')->findOrFail($id);
             
-            return response()->json([
-                'success' => true,
-                'message' => 'Data pengajuan berhasil dimuat',
-                'data' => $pengajuan
-            ]);
+            // Check if this is a web request or API request
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data pengajuan berhasil dimuat',
+                    'data' => $pengajuan
+                ]);
+            }
+
+            // For web requests, return the view with data
+            return view('admin.pengajuan.detail', compact('pengajuan'));
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Pengajuan tidak ditemukan',
-                'error' => $e->getMessage()
-            ], 404);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengajuan tidak ditemukan',
+                    'error' => $e->getMessage()
+                ], 404);
+            }
+            abort(404);
         }
     }
 

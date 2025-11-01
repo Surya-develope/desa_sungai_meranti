@@ -38,35 +38,41 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse ($jenisSuratList as $jenis)
                 <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-200">
-                    <!-- Card Header -->
-                    <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 p-6">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-white/20 rounded-lg p-2">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                            </div>
-                            <h3 class="text-xl font-bold text-white">{{ $jenis->nama_surat }}</h3>
-                        </div>
+                    <!-- Card Header - Hanya background tanpa icon -->
+                    <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-8">
+                        <h3 class="text-xl font-bold text-white leading-tight">{{ $jenis->nama_surat }}</h3>
                     </div>
 
                     <!-- Card Body -->
-                    <div class="p-6">
-                        <p class="text-gray-600 mb-4 leading-relaxed">
-                            {{ $jenis->deskripsi ?? 'Surat resmi dari desa untuk keperluan Administrasi.' }}
-                        </p>
+                    <div class="px-6 py-8">
+                        <!-- Gunakan nama jenis surat sebagai deskripsi utama -->
+                        <div class="mb-6">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">{{ $jenis->nama_surat }}</h4>
+                            <p class="text-gray-600 leading-relaxed text-sm">
+                                {{ $jenis->deskripsi ?? 'Surat administrasi resmi dari Desa Sungai Meranti untuk keperluan Anda.' }}
+                            </p>
+                        </div>
                         
-                        <div class="flex items-center justify-between">
-                            <div class="text-sm text-gray-500">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                {{ $jenis->updated_at ? \Carbon\Carbon::parse($jenis->updated_at)->diffForHumans() : 'Baru' }}
+                        <!-- Info section dengan ruang yang lebih luas -->
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">Status:</span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                    Aktif
+                                </span>
                             </div>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                                Aktif
-                            </span>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">Terakhir diperbarui:</span>
+                                <span class="text-gray-600">
+                                    {{ $jenis->updated_at ? \Carbon\Carbon::parse($jenis->updated_at)->diffForHumans() : 'Baru' }}
+                                </span>
+                            </div>
+                            @if($jenis->file_template)
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-500">Template:</span>
+                                    <span class="text-gray-600 truncate max-w-32"> Tersedia</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
