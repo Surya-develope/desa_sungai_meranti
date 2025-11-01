@@ -7,14 +7,17 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory as SpreadsheetIOFactory;
 use PhpOffice\PhpWord\IOFactory;
-
 class JenisSuratController extends Controller
 {
     // Menampilkan semua jenis surat
     public function jenisSuratList()
     {
         try {
-            $jenisSurat = JenisSurat::all();
+            $jenisSurat = JenisSurat::all()->map(function ($item) {
+                $item->file_template = $item->file_template ? Storage::url($item->file_template) : null;
+                return $item;
+            });
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data jenis surat berhasil dimuat',
@@ -66,6 +69,9 @@ class JenisSuratController extends Controller
                 'deskripsi' => $request->input('deskripsi'),
                 'is_active' => $request->boolean('is_active', true),
             ]);
+
+            // Konversi ke URL publik sebelum dikirim ke frontend
+            $jenisSurat->file_template = $jenisSurat->file_template ? Storage::url($jenisSurat->file_template) : null;
 
             return response()->json([
                 'success' => true,
@@ -126,6 +132,9 @@ class JenisSuratController extends Controller
 
             $jenisSurat->refresh();
 
+            // Konversi path ke URL publik
+            $jenisSurat->file_template = $jenisSurat->file_template ? Storage::url($jenisSurat->file_template) : null;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Jenis Surat berhasil diperbarui!',
@@ -139,7 +148,6 @@ class JenisSuratController extends Controller
             ], 500);
         }
     }
-
     // Ambil placeholder dari database
     public function getPlaceholders(Request $request, $id)
     {
@@ -224,37 +232,6 @@ class JenisSuratController extends Controller
         return $text;
     }
 
-    private function extractXlsxPlaceholders(string $filePath): array
-    {
-        $placeholders = [];
-        try {
-            $spreadsheet = SpreadsheetIOFactory::load($filePath);
-        } catch (\Throwable $e) {
-            return [];
-        }
-
-        $sheet = $spreadsheet->getActiveSheet();
-        $cells = $sheet->getCellCollection();
-        $text = '';
-
-        foreach ($cells as $cell) {
-            $value = $sheet->getCell($cell)->getValue();
-            if (is_string($value)) $text .= $value . ' ';
-        }
-
-        preg_match_all('/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/', $text, $matches);
-        if (!empty($matches[1])) {
-            foreach (array_unique($matches[1]) as $key) {
-                $placeholders[] = [
-                    'name' => trim($key),
-                    'label' => ucwords(str_replace('_', ' ', $key)),
-                    'type' => 'text',
-                ];
-            }
-        }
-
-        return $placeholders;
-    }
 
     // Admin Methods
     public function adminIndex(Request $request)
@@ -273,7 +250,9 @@ class JenisSuratController extends Controller
             }
 
             // For web requests, return the view with data
-            return view('admin.jenis-surat.index', compact('jenisSurat'));
+            return view('admin.jenis-surat.index', [
+                'jenisSuratList' => $jenisSurat
+            ]);
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -358,15 +337,131 @@ class JenisSuratController extends Controller
         }
     }
 
-    // Store method alias for API compatibility
-    public function store(Request $request)
-    {
-        return $this->AddLetter($request);
-    }
-
     // Index method alias for API compatibility
     public function index()
     {
         return $this->jenisSuratList();
+    }
+
+    // Bulk toggle status for multiple jenis surat
+    public function bulkToggleStatus(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'ids' => 'required|array',
+                'ids.*' => 'exists:jenis_surat,id'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data validation error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $ids = $request->input('ids');
+            $jenisSuratList = JenisSurat::whereIn('id', $ids)->get();
+
+            if ($jenisSuratList->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada data jenis surat yang ditemukan'
+                ], 404);
+            }
+
+            // Toggle status for all selected items
+            foreach ($jenisSuratList as $jenisSurat) {
+                $jenisSurat->update([
+                    'is_active' => !$jenisSurat->is_active
+                ]);
+            }
+
+            $activeCount = $jenisSuratList->where('is_active', true)->count();
+            $inactiveCount = $jenisSuratList->where('is_active', false)->count();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil mengubah status {$jenisSuratList->count()} jenis surat ({$activeCount} aktif, {$inactiveCount} nonaktif)",
+                'data' => [
+                    'updated_count' => $jenisSuratList->count(),
+                    'active_count' => $activeCount,
+                    'inactive_count' => $inactiveCount
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengubah status jenis surat',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Bulk delete multiple jenis surat
+    public function bulkDelete(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'ids' => 'required|array',
+                'ids.*' => 'exists:jenis_surat,id'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data validation error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $ids = $request->input('ids');
+            $jenisSuratList = JenisSurat::whereIn('id', $ids)->get();
+
+            if ($jenisSuratList->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada data jenis surat yang ditemukan'
+                ], 404);
+            }
+
+            // Check if any jenis surat has pengajuan
+            $withPengajuan = $jenisSuratList->filter(function($item) {
+                return $item->pengajuanSurat()->count() > 0;
+            });
+
+            if ($withPengajuan->isNotEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Beberapa jenis surat tidak dapat dihapus karena masih memiliki pengajuan'
+                ], 400);
+            }
+
+            // Delete file templates and records
+            foreach ($jenisSuratList as $jenisSurat) {
+                if ($jenisSurat->file_template) {
+                    Storage::disk('public')->delete($jenisSurat->file_template);
+                }
+            }
+
+            $deletedCount = $jenisSuratList->count();
+            JenisSurat::whereIn('id', $ids)->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil menghapus {$deletedCount} jenis surat",
+                'data' => [
+                    'deleted_count' => $deletedCount
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus jenis surat',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

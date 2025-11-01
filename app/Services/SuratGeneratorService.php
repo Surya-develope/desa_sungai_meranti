@@ -10,6 +10,7 @@ use App\Models\PengajuanSurat;
 
 class SuratGeneratorService
 {
+
     public function generateFromTemplate(PengajuanSurat $pengajuan)
     {
         $jenis = $pengajuan->jenis;

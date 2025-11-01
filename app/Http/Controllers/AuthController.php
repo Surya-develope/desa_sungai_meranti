@@ -74,7 +74,14 @@ class AuthController extends Controller
             // For web registration, log the user in and redirect
             if (!$r->isJson()) {
                 Auth::login($user);
-                return redirect()->intended(route('warga.dashboard'))->with('success', 'Registrasi berhasil! Selamat datang ' . $user->nama);
+
+                $roleName = $role->nama_role ?? 'warga';
+                $dashboardRoute = $roleName === 'admin' ? 'admin.dashboard' : 'warga.dashboard';
+                $successMessage = $roleName === 'admin'
+                    ? 'Registrasi berhasil sebagai admin! Selamat datang ' . $user->nama
+                    : 'Registrasi berhasil! Selamat datang ' . $user->nama;
+
+                return redirect()->intended(route($dashboardRoute))->with('success', $successMessage);
             }
 
             $token = $user->createToken('api-token')->plainTextToken;
